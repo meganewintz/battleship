@@ -5,13 +5,12 @@ import actors._
 
 import scala.annotation.tailrec
 import scala.io.StdIn.readLine
-import scala.io.StdIn.readChar
 import scala.sys.process._
 
 object CellState extends Enumeration {
     val EMPTY = Value("-")
-    val MISS = Value("x")
-    val TOUCH = Value("o")
+    val MISS = Value("X")
+    val TOUCH = Value("O")
     val SHIP = Value("s")
 }
 
@@ -83,7 +82,7 @@ object Utility {
 
 
     /**
-      * To clear the termial
+      * To clear the termiNal
       */
     def clear = println("clear".!)
 
@@ -114,6 +113,8 @@ object Utility {
     def showSunkFleetMessage: Unit = print("\nAll the ships were sunk. You win the party!\n")
 
     def showPlayAgainMessage: Unit = print("\nDo you want to play again? (Y)es/(N)o.\n")
+
+    def showContinueMessage: Unit =  print("\nPress any key to continue\n")
 
     def showInvalidAnswer: Unit = print("\nInvalid answer. Try again.\n")
 
@@ -248,8 +249,8 @@ object Utility {
     def shootsLoop(activePlayer: Player, passivePlayer: Player): Tuple2[Player,Player] = {
 
         // Ask the shoot cell to the active player
-        print(activePlayer.shipsGrid)
-        print(activePlayer.shootsGrid)
+        println(activePlayer.shipsGrid + "\n")
+        println(activePlayer.shootsGrid)
         showPlayerTour(activePlayer)
         val cell = getCoordinatesCellUser
 
@@ -261,19 +262,26 @@ object Utility {
 
             case CellState.EMPTY    => {
                 val newActivePlayer = PlayerUtil.updateShootsGrid(activePlayer, cell, CellState.MISS)
-                val newPassivePlayer = PlayerUtil.addAdverseShoot(passivePlayer, cell)
+                val newPassivePlayer = PlayerUtil.addOpponentShoot(passivePlayer, cell)
+                clear
+                println(newActivePlayer.shipsGrid + "\n")
+                println(newActivePlayer.shootsGrid)
                 showMissShotMessage
+                showContinueMessage
+                readLine()
                 shootsLoop(newPassivePlayer, newActivePlayer)
             }
             // If there is a ship, we update the fleet and the shipsGrid of the passive player
             case CellState.SHIP     => {
                 val shipTouch = passivePlayer.shipTouched(cell).get
                 val newActivePlayer = PlayerUtil.updateShootsGrid(activePlayer, cell, CellState.TOUCH)
-                val newPassivePlayer = PlayerUtil.addAdverseShoot(passivePlayer, cell)
+                val newPassivePlayer = PlayerUtil.addOpponentShoot(passivePlayer, cell)
+                clear
+                println(newActivePlayer.shipsGrid + "\n")
+                println(newActivePlayer.shootsGrid)
                 showTouchShipMessage
-
                 // check if the ship sie is 1 and it was touched, we will be sunk.
-                if (shipTouch.size == 1) {
+                if (shipTouch.willBeSunk) {
                     showSunkShipMessage
                     // check if the fleet is sunk ==> active player win
                     if (passivePlayer.isFleetSunk()) {
@@ -283,22 +291,25 @@ object Utility {
                         return (activePlayerWinner, newPassivePlayer)
                     }
                     else {
-                        println("Press any key to continue")
-                        readChar()
+                        showContinueMessage
+                        readLine()
                         shootsLoop(newPassivePlayer, newActivePlayer)
                     }
                 }
                 else {
-                    println("Press any key to continue")
-                    readChar()
+                    showContinueMessage
+                    readLine()
                     shootsLoop(newPassivePlayer, newActivePlayer)
                 }
             }
             // Else, cell already shot
             case _                  => {
+                clear
+                println(activePlayer.shipsGrid + "\n")
+                println(activePlayer.shootsGrid)
                 showAlreadyShotMessage
-                println("Press any key to continue")
-                readChar()
+                showContinueMessage
+                readLine()
                 shootsLoop(passivePlayer, activePlayer)
             }
         }

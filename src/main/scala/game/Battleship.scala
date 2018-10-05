@@ -100,8 +100,6 @@ object Battleship extends App {
 
 
 }
-
-case class Person(firstname: String, lastname: String)
 /*
 1.  add 5 ships j1
     add 5 ships j2
