@@ -56,8 +56,8 @@ object Battleship extends App {
 
         if (startAgain) {
             //Reboot the players
-            val newPlayer1 = PlayerUtil.ressetPlayer(player1)
-            val newPlayer2 = PlayerUtil.ressetPlayer(player2)
+            val newPlayer1 = player1.ressetPlayer()
+            val newPlayer2 = player2.ressetPlayer()
 
             // Start again the battleship and changing the fist player.
             if (newPlayer1.fistPlayer) mainLoop(GameState(newPlayer1, newPlayer2))
@@ -100,8 +100,6 @@ object Battleship extends App {
 
 
 }
-
-case class Person(firstname: String, lastname: String)
 /*
 1.  add 5 ships j1
     add 5 ships j2
