@@ -201,41 +201,17 @@ object Utility {
             val directionShip = getDirectionShipUser
 
             // We are sure that the cell, direction and description are correct
-            val ship = createShip(firstCellShip, directionShip, descrShips.head).get
+            val ship = Ship(firstCellShip, directionShip, descrShips.head).get
 
             // If the ship is placeabled, we add it to the player and go to the next ship
             if (player.isShipPlaceable(ship)) {
-                val newPlayer = PlayerUtil.addShipToPlayer(player, ship)
+                val newPlayer = player.addShipToPlayer(ship)
                 clear
                 createFleetPlayer(newPlayer, descrShips.tail)
             }
             // If the ship is not placeabled, try again
             else {showInvalidPlacementMessage; createFleetPlayer(player, descrShips)}
 
-        }
-    }
-
-    // Peut etre a position dans le compagnon de Ship
-    /**
-      * Create a ship according to its initial cell, its direction and its description
-      *
-      * @param firstCell
-      * @param direction
-      * @param descrShip
-      * @return a ship
-      */
-    def createShip(firstCell: Tuple2[Int,Int], direction: String, descrShip: Tuple2[String,Int]): Option[Ship] = {
-
-        if ( direction != Direction.HORIZONTAL && direction != Direction.VERTICAL) None
-        else {
-            val position: List[Tuple2[Int, Int]] = {
-                val size = descrShip._2
-                direction match {
-                    case Direction.HORIZONTAL => List.iterate(firstCell, size)(cell => (cell._1, cell._2 + 1))
-                    case Direction.VERTICAL => List.iterate(firstCell, size)(cell => (cell._1 + 1, cell._2))
-                }
-            }
-            Some(Ship(descrShip._1, position.toSet))
         }
     }
 
@@ -261,8 +237,8 @@ object Utility {
         cellState match {
 
             case CellState.EMPTY    => {
-                val newActivePlayer = PlayerUtil.updateShootsGrid(activePlayer, cell, CellState.MISS)
-                val newPassivePlayer = PlayerUtil.addOpponentShoot(passivePlayer, cell)
+                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.MISS)
+                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
                 clear
                 println(newActivePlayer.shipsGrid + "\n")
                 println(newActivePlayer.shootsGrid)
@@ -274,8 +250,8 @@ object Utility {
             // If there is a ship, we update the fleet and the shipsGrid of the passive player
             case CellState.SHIP     => {
                 val shipTouch = passivePlayer.shipTouched(cell).get
-                val newActivePlayer = PlayerUtil.updateShootsGrid(activePlayer, cell, CellState.TOUCH)
-                val newPassivePlayer = PlayerUtil.addOpponentShoot(passivePlayer, cell)
+                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.TOUCH)
+                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
                 clear
                 println(newActivePlayer.shipsGrid + "\n")
                 println(newActivePlayer.shootsGrid)
@@ -284,10 +260,11 @@ object Utility {
                 if (shipTouch.willBeSunk) {
                     showSunkShipMessage
                     // check if the fleet is sunk ==> active player win
-                    if (passivePlayer.isFleetSunk()) {
+                    if (newPassivePlayer.isFleetSunk()) {
                         showSunkFleetMessage
                         // increamente the score of the winner
-                        val activePlayerWinner = PlayerUtil.incrementScore(activePlayer)
+                        val activePlayerWinner = newActivePlayer.incrementScore()
+                        println("The game is finish")
                         return (activePlayerWinner, newPassivePlayer)
                     }
                     else {

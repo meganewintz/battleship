@@ -29,36 +29,28 @@ case class Grid(cells: List[List[CellState.Value]]) {
     }
 
     override def toString: String = {
-        val letters = List("A")
+        "\n" +
+        "   A   B   C   D   E   F   G   H   I   J \n" +
+        cells.zipWithIndex.map{ case (e, i) => e.mkString("   ", "   ", "   ") + (i+1)}.mkString("\n") +
         "\n"
-        "    A   B   C   D   E   F   G   H   I   J \n" +
-            //grid foreach { row => "A" + row foreach { col => " [ " + col + " ] "}; "\n" } +
-            //grid.map(_.mkString("A ", "   ", "")).mkString("[  ", "\n", "  ]")
-            cells.map( row => row.mkString(cells.indexOf(row).toString + "   ", "   ", "")).mkString("\n") +
-            "\n"
     }
-}
-
-// Tout ce qui renvoie un new ship
-object GridUtil {
 
     /**
       * Create a new grid with the cell state enter updated.
       * If the cell doesn't belong to the grid, simply return the grid.
       *
-      * @param grid
       * @param cell
       * @param newState
       * @return a new grid with the cell state enter updated.
       */
-    def updateCellState(grid: Grid, cell: Tuple2[Int, Int], newState: CellState.Value): Grid = {
-        if (grid.isCellBelongsTo(cell)) {
-            val rowCellConcerned = grid.cells.apply(cell._1)
+    def updateCellState(cell: Tuple2[Int, Int], newState: CellState.Value): Grid = {
+        if (isCellBelongsTo(cell)) {
+            val rowCellConcerned = cells.apply(cell._1)
             val newRowCellConcerned = rowCellConcerned.updated(cell._2, newState)
-            val newCells = grid.cells.updated(cell._1, newRowCellConcerned)
-            grid.copy(cells = newCells)
+            val newCells = cells.updated(cell._1, newRowCellConcerned)
+            copy(cells = newCells)
         }
-        else grid
+        else this
 
     }
 
@@ -67,19 +59,19 @@ object GridUtil {
       * All of the cells must belongs to the grid.
       * If one of the cells doesn't belong to the grid, simply return the grid.
       *
-      * @param grid
       * @param cells
       * @param newState
       * @return a new grid with all the cells enter updated by the newState.
       */
-    def updateMultipleCellsState(grid: Grid, cells: Set[Tuple2[Int, Int]], newState: CellState.Value): Grid = {
+    def updateMultipleCellsState(cells: Set[Tuple2[Int, Int]], newState: CellState.Value): Grid = {
 
-        if (cells.isEmpty || cells.exists(c => !grid.isCellBelongsTo(c))) grid
+        if (cells.isEmpty || cells.exists(c => !isCellBelongsTo(c))) this
         else {
-            val newGrid = updateCellState(grid, cells.head, newState)
-            updateMultipleCellsState(newGrid, cells.tail, newState)
+            val newGrid = updateCellState(cells.head, newState)
+            newGrid.updateMultipleCellsState(cells.tail, newState)
         }
     }
 }
+
 
 

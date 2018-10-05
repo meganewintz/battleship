@@ -1,42 +1,6 @@
 package actors
-import game.Utility._
-import game._
 
-//// position must belongs to the value of the objet Direction
-//// coord of startPoint must be included in [0, GridSize]
-//class Ship(direction: String, startPoint: Cell, size: Int) {
-//
-//    val coord: List[Cell] = {
-//    var c = new Array[Cell](size)
-//    direction match {
-//      case Direction.HORIZONTAL =>  List.iterate(startPoint, size)(p => new Cell(p.x, p.y+1))
-//      case Direction.VERTICAL =>  List.iterate(startPoint, size)(p => new Cell(p.x+1, p.y))
-//      case _ => throw new ExceptionInInitializerError("The direction is incorrect.")
-//      }
-//    }
-//
-//    /**
-//      *
-//      * @param coord: the coord that we want to check
-//      * @return true if the coord correspond to one of the ship coor
-//      */
-//    def isTouched(coord: Array[Int]): Boolean = ???
-//
-//    /**
-//      * Test if the ship is sunk
-//      * @return true if the the sunk, else false
-//      */
-//    def isSunk: Boolean = coord.isEmpty
-//
-//    /**
-//      * Delete the cell specified in param
-//      * @param cell: the cell that we want to delete
-//      * @return the ship updated
-//      */
-//    def deleteCell(cell: Array[Int]): Ship = ???
-//
-//}
-
+import game.Utility.Direction
 
 case class Ship(name: String, position: Set[Tuple2[Int,Int]] = Set()) {
 
@@ -64,28 +28,47 @@ case class Ship(name: String, position: Set[Tuple2[Int,Int]] = Set()) {
       */
     def willBeSunk: Boolean = position.size == 1
 
-}
-
-// Tout ce qui renvoie un new ship
-object ShipUtil {
-
     /**
       * Create a new ship without the square given.
       * If the square doesn't belong to the ship, simply return the ship.
       *
-      * @param ship
       * @param square
       * @return a new ship that contains all the elements of this ship but that not contains square.
       */
-    def removeSquareShip(ship: Ship, square: Tuple2[Int,Int]): Ship = {
+    def removeSquareShip(square: Tuple2[Int,Int]): Ship = {
 
-        if (ship.isTouched(square)) {
-            val newPosition = ship.position - square
-            ship.copy(position = newPosition)
+        if (isTouched(square)) {
+            val newPosition = position - square
+            copy(position = newPosition)
         }
-        else ship
+        else this
     }
 
+}
+
+object Ship {
+    /**
+      * Create a ship according to its initial cell, its direction and its description
+      *
+      * @param firstCell
+      * @param direction
+      * @param descrShip
+      * @return a ship
+      */
+    def apply(firstCell: Tuple2[Int,Int], direction: String, descrShip: Tuple2[String,Int]): Option[Ship] = {
+
+        if ( direction != Direction.HORIZONTAL && direction != Direction.VERTICAL) None
+        else {
+            val position: List[Tuple2[Int, Int]] = {
+                val size = descrShip._2
+                direction match {
+                    case Direction.HORIZONTAL => List.iterate(firstCell, size)(cell => (cell._1, cell._2 + 1))
+                    case Direction.VERTICAL => List.iterate(firstCell, size)(cell => (cell._1 + 1, cell._2))
+                }
+            }
+            Some(Ship(descrShip._1, position.toSet))
+        }
+    }
 }
 
 

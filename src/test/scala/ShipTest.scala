@@ -35,7 +35,7 @@ class ShipTest extends FlatSpec with Matchers {
     val shipMinus = Ship("Imperator", Set((1,2), (1,3), (1,4)))
 
     it should "remove a square to the ship" in {
-        ShipUtil.removeSquareShip(ship, (1,1)) shouldEqual shipMinus
+        ship.removeSquareShip((1,1)) shouldEqual shipMinus
     }
 
     // willBeSunk

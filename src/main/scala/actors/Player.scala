@@ -67,34 +67,28 @@ case class Player(
       */
     def isFleetSunk(): Boolean = fleet.isEmpty
 
-}
-
-
-// Tout ce qui renvoie un new ship
-object PlayerUtil {
-
     /**
       * Create a new player by incrementing the score of the player + 1.
-      * @param player
+      *
       * @return a new player with a score +1.
       */
-    def incrementScore(player: Player): Player = {
-        val oldScore = player.score
-        player.copy(score = oldScore + 1)
+    def incrementScore(): Player = {
+        val oldScore = score
+        copy(score = oldScore + 1)
     }
 
     /**
       * Create a new player by resseting player. Keep: name and score. If the user was not firstPlayer, he becomes it.
-      * @param player
+      *
       * @return a new player ressenting.
       */
-    def ressetPlayer(player: Player): Player = {
+    def ressetPlayer(): Player = {
 
-        if (player.fistPlayer) {
-            player.copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = false)
+        if (fistPlayer) {
+            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = false)
         }
         else {
-            player.copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = true)
+            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = true)
         }
     }
 
@@ -103,37 +97,34 @@ object PlayerUtil {
       * The ship is added only if it is placeable.
       * If it is not placeable, simply return the player.
       *
-      * @param player
       * @param ship
       * @return a new player with a ship added, if it is placeable.
       */
-    def addShipToPlayer(player: Player, ship: Ship): Player = {
-        if (player.isShipPlaceable(ship)) {
+    def addShipToPlayer(ship: Ship): Player = {
+        if (isShipPlaceable(ship)) {
 
             // Add the ship position on the shipsGrid.
-            val shipsGrid = player.shipsGrid
-            val newShipsGrid = GridUtil.updateMultipleCellsState(player.shipsGrid, ship.position, CellState.SHIP)
+            val newShipsGrid = shipsGrid.updateMultipleCellsState(ship.position, CellState.SHIP)
 
             // Add it on the fleet.
-            val newFleet = ship :: player.fleet
+            val newFleet = ship :: fleet
 
             // Create a new player.
-            player.copy(fleet = newFleet, shipsGrid = newShipsGrid)
+            copy(fleet = newFleet, shipsGrid = newShipsGrid)
         }
-        else player
+        else this
     }
 
     /**
       * Create a new Player without a specific ship in its fleet.
       * NOT change its grids, only fleet.
       *
-      * @param player
       * @param ship
       * @return a new player without the ship specify in its fleet.
       */
-    def removeShipToPlayer(player: Player, ship: Ship): Player = {
-        val newFleet = player.fleet.filterNot(x => x == ship)
-        player.copy(fleet = newFleet)
+    def removeShipToPlayer(ship: Ship): Player = {
+        val newFleet = fleet.filterNot(x => x == ship)
+        copy(fleet = newFleet)
     }
 
     /**
@@ -141,14 +132,13 @@ object PlayerUtil {
       * The cell must belongs to the shipsGrid.
       * If not, the initial player is return.
       *
-      * @param player
       * @param cell
       * @param newState
       * @return a new Player with one of the cell of its shipsGrid updated.
       */
-    def updateShipsGrid(player: Player, cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
-        val newGrid = GridUtil.updateCellState(player.shipsGrid, cell, newState)
-        player.copy(shipsGrid = newGrid)
+    def updateShipsGrid(cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
+        val newGrid = shipsGrid.updateCellState(cell, newState)
+        copy(shipsGrid = newGrid)
     }
 
     /**
@@ -156,14 +146,13 @@ object PlayerUtil {
       * The cell must belongs to the shootsGrid.
       * If not, the initial player is return.
       *
-      * @param player
       * @param cell
       * @param newState
       * @return a new Player with one of the cell of its shootsGrid updated.
       */
-    def updateShootsGrid(player: Player, cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
-        val newGrid = GridUtil.updateCellState(player.shootsGrid, cell, newState)
-        player.copy(shootsGrid = newGrid)
+    def updateShootsGrid(cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
+        val newGrid = shootsGrid.updateCellState(cell, newState)
+        copy(shootsGrid = newGrid)
 
     }
 
@@ -173,28 +162,27 @@ object PlayerUtil {
       * If the ship is sunk, removed it from the fleet.
       * If no ship was touched, simply return the player.
       *
-      * @param player
       * @param cell
       * @return a new player with the ship touched updated.
       */
-    def fleetTouched(player: Player, cell: Tuple2[Int, Int]): Player = {
+    def fleetTouched(cell: Tuple2[Int, Int]): Player = {
 
-        val shipTouched = player.shipTouched(cell)
+        val shipT = shipTouched(cell)
 
         // If there is not ship touched.
-        if (shipTouched.isEmpty) player
+        if (shipT.isEmpty) this
         else {
-            val newShip = ShipUtil.removeSquareShip(shipTouched.get, cell)
+            val newShip = shipT.get.removeSquareShip(cell)
 
             // If the ship is sunk, we remove it.
             if (newShip.isSunk) {
-                val newFleet = player.fleet.filterNot( s => s == shipTouched.get)
-                player.copy(fleet = newFleet)
+                val newFleet = fleet.filterNot( s => s == shipT.get)
+                copy(fleet = newFleet)
             }
             // Else we update the fleet with the new ship.
             else {
-                val newFleet = player.fleet.updated(player.fleet.indexOf(shipTouched.get), newShip)
-                player.copy(fleet = newFleet)
+                val newFleet = fleet.updated(fleet.indexOf(shipT.get), newShip)
+                copy(fleet = newFleet)
             }
         }
     }
@@ -205,27 +193,27 @@ object PlayerUtil {
       * Update fleet if a ship is touched.
       * Simply return the player if the cell was already touched or doesn't not belong to shipsGrid.
       *
-      * @param player
       * @param cell
       * @return a new player
       */
-    def addOpponentShoot(player: Player, cell: Tuple2[Int, Int]): Player = {
+    def addOpponentShoot(cell: Tuple2[Int, Int]): Player = {
 
-        val cellState = player.getCellStateShipsGrid(cell)
+        val cellState = getCellStateShipsGrid(cell)
 
-        if (cellState.isEmpty) player
+        if (cellState.isEmpty) this
         else {
             cellState.get match {
                 // If there is no ship, we mark miss on our shipsGrid
-                case CellState.EMPTY => PlayerUtil.updateShipsGrid(player, cell, CellState.MISS)
+                case CellState.EMPTY => updateShipsGrid(cell, CellState.MISS)
                 // If there is a ship, we update the fleet and the shipsGrid
                 case CellState.SHIP => {
-                    val newPlayer = fleetTouched(player, cell)
-                    PlayerUtil.updateShipsGrid(newPlayer, cell, CellState.TOUCH)
+                    val newPlayer = fleetTouched(cell)
+                    newPlayer.updateShipsGrid(cell, CellState.TOUCH)
                 }
                 // Else, we do nothing
-                case _ => player
+                case _ => this
             }
         }
     }
+
 }
