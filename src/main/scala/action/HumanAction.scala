@@ -1,7 +1,7 @@
 package action
 
 import actors._
-import game.ShootResult
+import game.ShotResult
 import game.Utility._
 
 import scala.io.StdIn.readLine
@@ -89,7 +89,7 @@ object HumanAction extends Action {
     }
 
 
-    override def displayResultShoot(player: Player,resShoot: ShootResult.Value ): Unit = {
+    override def displayResultShoot(player: Player,resShoot: ShotResult.Value ): Unit = {
         clear
         println(player.shipsGrid + "\n")
         println(player.shootsGrid)

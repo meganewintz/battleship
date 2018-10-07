@@ -10,15 +10,15 @@ import scala.sys.process._
 
 object CellState extends Enumeration {
     val EMPTY = Value("-")
-    val MISS = Value("X")
-    val TOUCH = Value("O")
+    val MISS = Value(Console.RED + "X" + Console.RESET)
+    val TOUCH = Value(Console.BLUE + "O" + Console.RESET)
     val SHIP = Value("s")
 }
 
 /**
   * The shoot results available.
   */
-object ShootResult extends Enumeration {
+object ShotResult extends Enumeration {
     val MISS = Value("There is nothing here. You MISS your target!")
     val TOUCH = Value("You TOUCHED a ship!")
     val SHIPSUNK = Value("A SHIP is SUNK!")
@@ -161,8 +161,8 @@ object Utility {
 
         userInput match {
             case "1" =>  GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
-            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction1))
-            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction1), Player("Player2", action = AIAction2), loop = 100)
+            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction3))
+            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction2), Player("Player2", action = AIAction3), loop = 100)
             case _ => showInvalidAnswer; getChoiceGame
         }
     }
@@ -185,7 +185,7 @@ object Utility {
         val shootRes = res._2
 
         shootRes match {
-            case ShootResult.FLEETSUNK => {
+            case ShotResult.FLEETSUNK => {
                 // increamente the score of the winner
                 val activePlayerWinner = activePlayer.incrementScore()
                 (activePlayerWinner, newPassivePlayer)

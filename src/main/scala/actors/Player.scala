@@ -1,7 +1,7 @@
 package actors
 import action.Action
 import game.CellState
-import game.ShootResult
+import game.ShotResult
 
 case class Player(
                      name: String,
@@ -10,7 +10,9 @@ case class Player(
                      shipsGrid: Grid = Grid(List.fill(10,10)(CellState.EMPTY)),
                      shootsGrid: Grid = Grid(List.fill(10,10)(CellState.EMPTY)),
                      fleet: List[Ship] = List(),
-                     action: Action
+                     action: Action,
+                     shots: List[Tuple2[Tuple2[Int, Int], ShotResult.Value]] = List()
+
                  ) {
 
     /**
@@ -198,22 +200,22 @@ case class Player(
       * @param cell
       * @return a new player, and the result of the shoot.
       */
-    def addOpponentShoot(cell: Tuple2[Int, Int]): (Player, ShootResult.Value) = {
+    def addOpponentShoot(cell: Tuple2[Int, Int]): (Player, ShotResult.Value) = {
 
         val cellState = getCellStateShipsGrid(cell)
 
-        if (cellState.isEmpty) (this, ShootResult.MISS)
+        if (cellState.isEmpty) (this, ShotResult.MISS)
         else {
             cellState.get match {
                 // If there is no ship, we mark miss on our shipsGrid
-                case CellState.EMPTY => (updateShipsGrid(cell, CellState.MISS), ShootResult.MISS)
+                case CellState.EMPTY => (updateShipsGrid(cell, CellState.MISS), ShotResult.MISS)
                 // If there is a ship, we update the fleet and the shipsGrid
                 case CellState.SHIP => {
 
                     val shipT = shipTouched(cell)
 
                     // Not ship touched. (Normally not possible)
-                    if (shipT.isEmpty) (this, ShootResult.MISS)
+                    if (shipT.isEmpty) (this, ShotResult.MISS)
                     else {
                         val newShip = shipT.get.removeSquareShip(cell)
 
@@ -222,21 +224,21 @@ case class Player(
                             val newFleet = fleet.filterNot( s => s == shipT.get)
                             val newPlayer = copy(fleet = newFleet)
                             // Fleet sunk.
-                            if (newPlayer.isFleetSunk()) (newPlayer, ShootResult.FLEETSUNK)
+                            if (newPlayer.isFleetSunk()) (newPlayer, ShotResult.FLEETSUNK)
                             // Fleet not sunk
-                            else (newPlayer, ShootResult.SHIPSUNK)
+                            else (newPlayer, ShotResult.SHIPSUNK)
 
                         }
                         // Ship touched - not sunk. Remove square from ship, update shipsGrid.
                         else {
                             val newFleet = fleet.updated(fleet.indexOf(shipT.get), newShip)
                             val newShipsGrid = shipsGrid.updateCellState(cell, CellState.TOUCH)
-                            (copy(fleet = newFleet, shipsGrid = newShipsGrid), ShootResult.TOUCH)
+                            (copy(fleet = newFleet, shipsGrid = newShipsGrid), ShotResult.TOUCH)
                         }
                     }
                 }
                 // Else, cell already touched
-                case _ => (this, ShootResult.ALREADYSHOOT)
+                case _ => (this, ShotResult.ALREADYSHOOT)
             }
         }
     }
@@ -248,20 +250,21 @@ case class Player(
       * @param resShoot
       * @return
       */
-    def addOwnShoot(cell: Tuple2[Int, Int], resShoot: ShootResult.Value): Player = {
+    def addOwnShoot(cell: Tuple2[Int, Int], resShoot: ShotResult.Value): Player = {
+        val playerAddShoot = copy(shots = (cell, resShoot) :: shots)
         resShoot match {
-            case ShootResult.MISS => {
-                val newPlayer = updateShootsGrid(cell, CellState.MISS)
+            case ShotResult.MISS => {
+                val newPlayer = playerAddShoot.updateShootsGrid(cell, CellState.MISS)
                 action.displayResultShoot(newPlayer, resShoot)
                 newPlayer
             }
-            case ShootResult.TOUCH => {
-                val newPlayer = updateShootsGrid(cell, CellState.TOUCH)
+            case ShotResult.TOUCH => {
+                val newPlayer = playerAddShoot.updateShootsGrid(cell, CellState.TOUCH)
                 action.displayResultShoot(newPlayer, resShoot)
                 newPlayer
             }
             // Already touch, don't need to update the shootsGrid
-            case _ => action.displayResultShoot(this, resShoot); this
+            case _ => action.displayResultShoot(playerAddShoot, resShoot); playerAddShoot
         }
     }
 

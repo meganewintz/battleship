@@ -28,7 +28,7 @@ trait Action {
 
     def shoot(player: Player): Tuple2[Int, Int]
 
-    def displayResultShoot(player: Player, resShoot: ShootResult.Value): Unit
+    def displayResultShoot(player: Player, resShoot: ShotResult.Value): Unit
 }
 
 
