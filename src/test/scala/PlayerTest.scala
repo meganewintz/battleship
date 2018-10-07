@@ -1,3 +1,4 @@
+import action.HumanAction
 import org.scalatest._
 import actors._
 import game.CellState
@@ -198,7 +199,7 @@ class PlayerTest extends FlatSpec with Matchers {
 
     // addAdverseShoot
     // -----------------------------------------------------------------------
-//
+
 //    it should "update the cell touched by the opponent (MISS)" in {
 //        val playerTouchedMiss = player.addOpponentShoot((2,2))
 //        playerTouchedMiss.getCellStateShipsGrid(2,2) shouldEqual Some(CellState.MISS)
@@ -211,16 +212,16 @@ class PlayerTest extends FlatSpec with Matchers {
 //            playerTouchedTouch.shipTouched(1,2) shouldEqual None
 //        )
 //    }
-
-    it should "return the initial player because the cell was already touched" in {
-        val playerTouchedTouch = player.addOpponentShoot((1,2))
-        val playerAlreadyTouch = player.addOpponentShoot((1,2))
-        playerTouchedTouch shouldEqual playerAlreadyTouch
-    }
-
-    it should "return the initial player because the cell is NOT belong to the shipsGrid" in {
-        val playerTouchedOut = player.addOpponentShoot((1,13))
-        playerTouchedOut shouldEqual player
-    }
+//
+//    it should "return the initial player because the cell was already touched" in {
+//        val playerTouchedTouch = player.addOpponentShoot((1,2))
+//        val playerAlreadyTouch = player.addOpponentShoot((1,2))
+//        playerTouchedTouch shouldEqual playerAlreadyTouch
+//    }
+//
+//    it should "return the initial player because the cell is NOT belong to the shipsGrid" in {
+//        val playerTouchedOut = player.addOpponentShoot((1,13))
+//        playerTouchedOut shouldEqual player
+//    }
 
 }

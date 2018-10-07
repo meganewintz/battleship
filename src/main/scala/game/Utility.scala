@@ -1,6 +1,7 @@
 package game
 
 
+import action._
 import actors._
 
 import scala.annotation.tailrec
@@ -97,31 +98,33 @@ object Utility {
       */
     def clear = println("clear".!)
 
-    def showPlayerTour(player: Player): Unit = print("\n" + player.name + " it's your turn.\n")
+    def showPlayerTour(player: Player): Unit = println("\n" + player.name + " it's your turn.")
 
-    def showPlayerWinnerMessage(player: Player): Unit = print("\n" + player.name + " win the game!\n")
+    def showPlayerWinnerMessage(player: Player): Unit = println("\n" + player.name + " win the game!")
 
-    def showPlaceShipMessage(name: String, sizeShip: Int): Unit = print("\n\nPlace the "+ name + " of size " + sizeShip +"\n")
+    def showPlaceShipMessage(player: Player, name: String, sizeShip: Int): Unit = println("\n" + player.name + " place the "+ name + " of size " + sizeShip +"")
 
-    def showPromptStartCellShip(): Unit = print("\nEnter the cell of the ship. Ex: A1 :\n")
+    def showPromptStartCellShip(): Unit = println("\nEnter the cell of the ship. Ex: A1 :")
 
-    def showPromptDirectionShip(): Unit = print("\nEnter the direction of the ship (H)orizontal or (V)ertical :\n")
+    def showPromptDirectionShip(): Unit = println("\nEnter the direction of the ship (H)orizontal or (V)ertical :")
 
-    def showPromptCell(): Unit = print("\nEnter the target cell. Ex: A1 :\n")
+    def showPromptCell(): Unit = println("\nEnter the target cell. Ex: A1 :")
 
-    def showInvaliDirectionMessage: Unit = print("\nThe direction enter is invalid. \n")
+    def showInvaliDirectionMessage: Unit = println("\nThe direction enter is invalid.")
 
-    def showInvalidPlacementMessage: Unit = print("\n /!\\ Your ship is out of bouds or there is already a ship placed. Try again. \n")
+    def showInvalidPlacementMessage: Unit = println("\n /!\\ Your ship is out of bouds or there is already a ship placed. Try again. ")
 
-    def showInvalidCoordMessage: Unit = print("\nThe coordinates are invalid. Try again.\n")
+    def showInvalidCoordMessage: Unit = println("\nThe coordinates are invalid. Try again.")
 
-    def showPlayAgainMessage: Unit = print("\nDo you want to play again? (Y)es/(N)o.\n")
+    def showPlayAgainMessage: Unit = println("\nDo you want to play again? (Y)es/(N)o.")
 
-    def showChoiceGameMessage: Unit = print("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine\n")
+    def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine")
 
-    def showContinueMessage: Unit =  print("\nPress any key to continue\n")
+    def showContinueMessage: Unit =  println("\nPress any key to continue.")
 
-    def showInvalidAnswer: Unit = print("\nInvalid answer. Try again.\n")
+    def showInvalidAnswer: Unit = println("\nInvalid answer. Try again.")
+;
+    def showScorePlayer(player: Player): Unit = println("\n" + player.name + ": " + player.score + " points")
 
     def getUserInput(): String = readLine.trim.toUpperCase
 
@@ -158,8 +161,8 @@ object Utility {
 
         userInput match {
             case "1" =>  GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
-            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction))
-            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction), Player("Player2", action = AIAction))
+            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction1))
+            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction1), Player("Player2", action = AIAction2), loop = 100)
             case _ => showInvalidAnswer; getChoiceGame
         }
     }

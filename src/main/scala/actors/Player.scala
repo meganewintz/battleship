@@ -1,4 +1,5 @@
 package actors
+import action.Action
 import game.CellState
 import game.ShootResult
 
