@@ -1,6 +1,7 @@
 package game
 
 
+import action._
 import actors._
 
 import scala.annotation.tailrec
@@ -12,6 +13,17 @@ object CellState extends Enumeration {
     val MISS = Value("X")
     val TOUCH = Value("O")
     val SHIP = Value("s")
+}
+
+/**
+  * The shoot results available.
+  */
+object ShootResult extends Enumeration {
+    val MISS = Value("There is nothing here. You MISS your target!")
+    val TOUCH = Value("You TOUCHED a ship!")
+    val SHIPSUNK = Value("A SHIP is SUNK!")
+    val FLEETSUNK = Value("All the SHIPS were SUNK!")
+    val ALREADYSHOOT = Value("You have ALREADY SHOOT this cell.")
 }
 
 object Utility {
@@ -86,82 +98,36 @@ object Utility {
       */
     def clear = println("clear".!)
 
-    def showPlayerTour(player: Player): Unit = print("\n" + player.name + " it's your turn.\n")
+    def showPlayerTour(player: Player): Unit = println("\n" + player.name + " it's your turn.")
 
-    def showPlaceShipMessage(name: String, sizeShip: Int): Unit = print("\n\nPlace the "+ name + " of size " + sizeShip +"\n")
+    def showPlayerWinnerMessage(player: Player): Unit = println("\n" + player.name + " win the game!")
 
-    def showPromptStartCellShip(): Unit = print("\nEnter the cell of the ship. Ex: A1 :\n")
+    def showPlaceShipMessage(player: Player, name: String, sizeShip: Int): Unit = println("\n" + player.name + " place the "+ name + " of size " + sizeShip +"")
 
-    def showPromptDirectionShip(): Unit = print("\nEnter the direction of the ship (H)orizontal or (V)ertical :\n")
+    def showPromptStartCellShip(): Unit = println("\nEnter the cell of the ship. Ex: A1 :")
 
-    def showPromptCell(): Unit = print("\nEnter the target cell. Ex: A1 :\n")
+    def showPromptDirectionShip(): Unit = println("\nEnter the direction of the ship (H)orizontal or (V)ertical :")
 
-    def showInvaliDirectionMessage: Unit = print("\nThe direction enter is invalid. \n")
+    def showPromptCell(): Unit = println("\nEnter the target cell. Ex: A1 :")
 
-    def showInvalidPlacementMessage: Unit = print("\n /!\\ Your ship is out of bouds or there is already a ship placed. Try again. \n")
+    def showInvaliDirectionMessage: Unit = println("\nThe direction enter is invalid.")
 
-    def showInvalidCoordMessage: Unit = print("\nThe coordinates are invalid. Try again.\n")
+    def showInvalidPlacementMessage: Unit = println("\n /!\\ Your ship is out of bouds or there is already a ship placed. Try again. ")
 
-    def showAlreadyShotMessage: Unit = print("\nYou have already shot this cell.\n")
+    def showInvalidCoordMessage: Unit = println("\nThe coordinates are invalid. Try again.")
 
-    def showMissShotMessage: Unit = print("\nThere is nothing here. You miss your target!\n")
+    def showPlayAgainMessage: Unit = println("\nDo you want to play again? (Y)es/(N)o.")
 
-    def showTouchShipMessage: Unit = print("\nYou touched a ship!\n")
+    def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine")
 
-    def showSunkShipMessage: Unit = print("\nA ship is sunk.\n")
+    def showContinueMessage: Unit =  println("\nPress any key to continue.")
 
-    def showSunkFleetMessage: Unit = print("\nAll the ships were sunk. You win the party!\n")
-
-    def showPlayAgainMessage: Unit = print("\nDo you want to play again? (Y)es/(N)o.\n")
-
-    def showContinueMessage: Unit =  print("\nPress any key to continue\n")
-
-    def showInvalidAnswer: Unit = print("\nInvalid answer. Try again.\n")
+    def showInvalidAnswer: Unit = println("\nInvalid answer. Try again.")
+;
+    def showScorePlayer(player: Player): Unit = println("\n" + player.name + ": " + player.score + " points")
 
     def getUserInput(): String = readLine.trim.toUpperCase
 
-
-    /**
-      * The coordinate choose by the user
-      * He can enter: A1
-      * The result looks like: (0,0)
-      *
-      * @return a Tuple2 containing the coordinates choose by the user.
-      */
-    @tailrec
-    def getCoordinatesCellUser: Tuple2[Int, Int] = {
-        showPromptCell()
-        val userInput = getUserInput() // ex received : A1
-
-        if (userInput.length != 2) {
-            showInvalidCoordMessage; getCoordinatesCellUser
-        }
-        else {
-            val coord = userInput.split("") // ex: ("A", "1")
-
-            if (mapLetterCoord.contains(coord(0)) && mapNumberCoord.contains(coord(1))) {
-                return (mapNumberCoord.apply(coord(1)), mapLetterCoord.apply(coord(0)))
-            }
-            else showInvalidCoordMessage; getCoordinatesCellUser
-        }
-    }
-
-    /**
-      * The direction of the ship choose by the user.
-      * Direction.HORIZONTAL or Direction.VERTICAL
-      *
-      * @return a string containing the direction enter by the user
-      */
-    @tailrec
-    def getDirectionShipUser: String = {
-        showPromptDirectionShip()
-        val userInput = getUserInput()
-
-        userInput match {
-            case Direction.HORIZONTAL | Direction.VERTICAL => return userInput
-            case _ => showInvaliDirectionMessage; getDirectionShipUser
-        }
-    }
 
     /**
       * ask to the user if he wants to play again.
@@ -181,39 +147,26 @@ object Utility {
     }
 
     /**
-      * Create a new player by setting his fleet.
+      * ask to the user to choose his type of game.
+      * 1 - Human VS Human
+      * 2 - Human VS Machine
+      * 3 - Machine VS Machine
       *
-      * @param player: the player concerned
-      * @param descrShips: list the different names and of the ship required and its size associated
-      * @return: a new player with his fleet completed.
+      * @return a new game
       */
     @tailrec
-    def createFleetPlayer(player: Player, descrShips: List[Tuple2[String,Int]]): Player = {
+    def getChoiceGame: GameState = {
+        showChoiceGameMessage
+        val userInput = getUserInput()
 
-        // if descrShips is empty, all ships were successfully added
-        if (descrShips.isEmpty) return player
-
-        else {
-            print(player.shipsGrid)
-            showPlaceShipMessage(descrShips.head._1, descrShips.head._2)
-
-            val firstCellShip = getCoordinatesCellUser
-            val directionShip = getDirectionShipUser
-
-            // We are sure that the cell, direction and description are correct
-            val ship = Ship(firstCellShip, directionShip, descrShips.head).get
-
-            // If the ship is placeabled, we add it to the player and go to the next ship
-            if (player.isShipPlaceable(ship)) {
-                val newPlayer = player.addShipToPlayer(ship)
-                clear
-                createFleetPlayer(newPlayer, descrShips.tail)
-            }
-            // If the ship is not placeabled, try again
-            else {showInvalidPlacementMessage; createFleetPlayer(player, descrShips)}
-
+        userInput match {
+            case "1" =>  GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
+            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction1))
+            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction1), Player("Player2", action = AIAction2), loop = 100)
+            case _ => showInvalidAnswer; getChoiceGame
         }
     }
+
 
     /**
       * Loop of the shoots player. The loop finish when a player win, the adverse fleet is sunk.
@@ -225,71 +178,86 @@ object Utility {
     def shootsLoop(activePlayer: Player, passivePlayer: Player): Tuple2[Player,Player] = {
 
         // Ask the shoot cell to the active player
-        println(activePlayer.shipsGrid + "\n")
-        println(activePlayer.shootsGrid)
-        showPlayerTour(activePlayer)
-        val cell = getCoordinatesCellUser
+        val cell = activePlayer.shoot()
 
-        // Take the state of the cell shoot
-        val cellState = passivePlayer.getCellStateShipsGrid(cell).get
-        println("cell state: " + cellState + "\n")
+        val res = passivePlayer.addOpponentShoot(cell)
+        val newPassivePlayer = res._1
+        val shootRes = res._2
 
-        cellState match {
-
-            case CellState.EMPTY    => {
-                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.MISS)
-                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
-                clear
-                println(newActivePlayer.shipsGrid + "\n")
-                println(newActivePlayer.shootsGrid)
-                showMissShotMessage
-                showContinueMessage
-                readLine()
+        shootRes match {
+            case ShootResult.FLEETSUNK => {
+                // increamente the score of the winner
+                val activePlayerWinner = activePlayer.incrementScore()
+                (activePlayerWinner, newPassivePlayer)
+            }
+            case _ => {
+                val newActivePlayer = activePlayer.addOwnShoot(cell, shootRes)
                 shootsLoop(newPassivePlayer, newActivePlayer)
             }
-            // If there is a ship, we update the fleet and the shipsGrid of the passive player
-            case CellState.SHIP     => {
-                val shipTouch = passivePlayer.shipTouched(cell).get
-                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.TOUCH)
-                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
-                clear
-                println(newActivePlayer.shipsGrid + "\n")
-                println(newActivePlayer.shootsGrid)
-                showTouchShipMessage
-                // check if the ship sie is 1 and it was touched, we will be sunk.
-                if (shipTouch.willBeSunk) {
-                    showSunkShipMessage
-                    // check if the fleet is sunk ==> active player win
-                    if (newPassivePlayer.isFleetSunk()) {
-                        showSunkFleetMessage
-                        // increamente the score of the winner
-                        val activePlayerWinner = newActivePlayer.incrementScore()
-                        println("The game is finish")
-                        return (activePlayerWinner, newPassivePlayer)
-                    }
-                    else {
-                        showContinueMessage
-                        readLine()
-                        shootsLoop(newPassivePlayer, newActivePlayer)
-                    }
-                }
-                else {
-                    showContinueMessage
-                    readLine()
-                    shootsLoop(newPassivePlayer, newActivePlayer)
-                }
-            }
-            // Else, cell already shot
-            case _                  => {
-                clear
-                println(activePlayer.shipsGrid + "\n")
-                println(activePlayer.shootsGrid)
-                showAlreadyShotMessage
-                showContinueMessage
-                readLine()
-                shootsLoop(passivePlayer, activePlayer)
-            }
         }
+
+//        // Take the state of the cell shoot
+//        val cellState = passivePlayer.getCellStateShipsGrid(cell).get
+//        println("cell state: " + cellState + "\n")
+
+//        cellState match {
+//
+//            case CellState.EMPTY    => {
+//                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.MISS)
+//                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
+//                clear
+//                println(newActivePlayer.shipsGrid + "\n")
+//                println(newActivePlayer.shootsGrid)
+//                showMissShotMessage
+//                showContinueMessage
+//                readLine()
+//                shootsLoop(newPassivePlayer, newActivePlayer)
+//            }
+//
+//
+//            // If there is a ship, we update the fleet and the shipsGrid of the passive player
+//            case CellState.SHIP     => {
+//                val shipTouch = passivePlayer.shipTouched(cell).get
+//                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.TOUCH)
+//                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
+//                clear
+//                println(newActivePlayer.shipsGrid + "\n")
+//                println(newActivePlayer.shootsGrid)
+//                showTouchShipMessage
+//                // check if the ship sie is 1 and it was touched, we will be sunk.
+//                if (shipTouch.willBeSunk) {
+//                    showSunkShipMessage
+//                    // check if the fleet is sunk ==> active player win
+//                    if (newPassivePlayer.isFleetSunk()) {
+//                        showSunkFleetMessage
+//                        // increamente the score of the winner
+//                        val activePlayerWinner = newActivePlayer.incrementScore()
+//                        println("The game is finish")
+//                        return (activePlayerWinner, newPassivePlayer)
+//                    }
+//                    else {
+//                        showContinueMessage
+//                        readLine()
+//                        shootsLoop(newPassivePlayer, newActivePlayer)
+//                    }
+//                }
+//                else {
+//                    showContinueMessage
+//                    readLine()
+//                    shootsLoop(newPassivePlayer, newActivePlayer)
+//                }
+//            }
+//            // Else, cell already shot
+//            case _                  => {
+//                clear
+//                println(activePlayer.shipsGrid + "\n")
+//                println(activePlayer.shootsGrid)
+//                showAlreadyShotMessage
+//                showContinueMessage
+//                readLine()
+//                shootsLoop(passivePlayer, activePlayer)
+//            }
+//        }
     }
 
 }
