@@ -96,7 +96,7 @@ object Utility {
     /**
       * To clear the termiNal
       */
-    def clear = println("clear".!)
+    def clear: Unit = println("clear".!)
 
     def showPlayerTour(player: Player): Unit = println("\n" + player.name + " it's your turn.")
 
@@ -119,6 +119,8 @@ object Utility {
     def showPlayAgainMessage: Unit = println("\nDo you want to play again? (Y)es/(N)o.")
 
     def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine")
+
+    def showChoiceAILevelMessage: Unit =  println("\nChoose the level of the machine:\n 1: level Beginner \n 2: level Medium \n 3: level Hard")
 
     def showContinueMessage: Unit =  println("\nPress any key to continue.")
 
@@ -161,8 +163,20 @@ object Utility {
 
         userInput match {
             case "1" =>  GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
-            case "2" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = AIAction3))
-            case "3" => GameState(Player("Player1", fistPlayer = true, action = AIAction2), Player("Player2", action = AIAction3), loop = 100)
+            case "2" => levelChoice
+            case "3" => GameState(Player("AI Level Hard", fistPlayer = true, action = AIAction3), Player("AI Level Hard", action = AIAction3), loop = 100)
+            case _ => showInvalidAnswer; getChoiceGame
+        }
+    }
+
+    def levelChoice: GameState = {
+        showChoiceAILevelMessage
+        val userInput = getUserInput()
+
+        userInput match {
+            case "1" =>  GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Beginner", action = AIAction1))
+            case "2" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Medium", action = AIAction2))
+            case "3" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Hard", action = AIAction3))
             case _ => showInvalidAnswer; getChoiceGame
         }
     }

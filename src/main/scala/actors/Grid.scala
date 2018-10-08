@@ -10,9 +10,9 @@ case class Grid(cells: List[List[CellState.Value]]) {
       * @param cell
       * @return an option value containing the cell state. None if the cell doesn't belong to the grid.
       */
-    def getCellState(cell: Tuple2[Int,Int]): Option[CellState.Value] = {
+    def getCellState(cell: Cell): Option[CellState.Value] = {
         if (isCellBelongsTo(cell)) {
-            Some(cells.apply(cell._1).apply(cell._2))
+            Some(cells.apply(cell.x).apply(cell.y))
         }
         else None
     }
@@ -23,9 +23,9 @@ case class Grid(cells: List[List[CellState.Value]]) {
       * @param cell
       * @return true if the cell belongs to the grid.
       */
-    def isCellBelongsTo(cell: Tuple2[Int,Int]): Boolean = {
+    def isCellBelongsTo(cell: Cell): Boolean = {
         val size = cells.length
-        cell._1 >= 0 && cell._1 < size && cell._2 >= 0 && cell._2 < size
+        cell.x >= 0 && cell.x < size && cell.y >= 0 && cell.y < size
     }
 
     override def toString: String = {
@@ -43,11 +43,11 @@ case class Grid(cells: List[List[CellState.Value]]) {
       * @param newState
       * @return a new grid with the cell state enter updated.
       */
-    def updateCellState(cell: Tuple2[Int, Int], newState: CellState.Value): Grid = {
+    def updateCellState(cell: Cell, newState: CellState.Value): Grid = {
         if (isCellBelongsTo(cell)) {
-            val rowCellConcerned = cells.apply(cell._1)
-            val newRowCellConcerned = rowCellConcerned.updated(cell._2, newState)
-            val newCells = cells.updated(cell._1, newRowCellConcerned)
+            val rowCellConcerned = cells.apply(cell.x)
+            val newRowCellConcerned = rowCellConcerned.updated(cell.y, newState)
+            val newCells = cells.updated(cell.x, newRowCellConcerned)
             copy(cells = newCells)
         }
         else this
@@ -63,7 +63,7 @@ case class Grid(cells: List[List[CellState.Value]]) {
       * @param newState
       * @return a new grid with all the cells enter updated by the newState.
       */
-    def updateMultipleCellsState(cells: Set[Tuple2[Int, Int]], newState: CellState.Value): Grid = {
+    def updateMultipleCellsState(cells: Set[Cell], newState: CellState.Value): Grid = {
 
         if (cells.isEmpty || cells.exists(c => !isCellBelongsTo(c))) this
         else {

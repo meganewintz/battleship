@@ -2,16 +2,16 @@ package actors
 
 import game.Utility.Direction
 
-case class Ship(name: String, position: Set[Tuple2[Int,Int]] = Set()) {
+case class Ship(name: String, position: Set[Cell] = Set()) {
 
     /**
-      * Check if the square belongs to the ship.
+      * Check if the cell belongs to the ship.
       *
-      * @param square. The square to test.
-      * @return Boolean. True if the square belongs to the ship.
+      * @param cell. The cell to test.
+      * @return Boolean. True if the cell belongs to the ship.
       */
-    def isTouched(square: Tuple2[Int,Int]): Boolean = {
-        position.contains(square)
+    def isTouched(cell: Cell): Boolean = {
+        position.contains(cell)
     }
 
     /**
@@ -29,16 +29,16 @@ case class Ship(name: String, position: Set[Tuple2[Int,Int]] = Set()) {
     def willBeSunk: Boolean = position.size == 1
 
     /**
-      * Create a new ship without the square given.
-      * If the square doesn't belong to the ship, simply return the ship.
+      * Create a new ship without the cell given.
+      * If the cell doesn't belong to the ship, simply return the ship.
       *
-      * @param square
-      * @return a new ship that contains all the elements of this ship but that not contains square.
+      * @param cell
+      * @return a new ship that contains all the elements of this ship but that not contains cell.
       */
-    def removeSquareShip(square: Tuple2[Int,Int]): Ship = {
+    def removeSquareShip(cell: Cell): Ship = {
 
-        if (isTouched(square)) {
-            val newPosition = position - square
+        if (isTouched(cell)) {
+            val newPosition = position - cell
             copy(position = newPosition)
         }
         else this
@@ -55,15 +55,15 @@ object Ship {
       * @param descrShip
       * @return a ship
       */
-    def apply(firstCell: Tuple2[Int,Int], direction: String, descrShip: Tuple2[String,Int]): Option[Ship] = {
+    def apply(firstCell: Cell, direction: String, descrShip: Tuple2[String,Int]): Option[Ship] = {
 
         if ( direction != Direction.HORIZONTAL && direction != Direction.VERTICAL) None
         else {
-            val position: List[Tuple2[Int, Int]] = {
+            val position: List[Cell] = {
                 val size = descrShip._2
                 direction match {
-                    case Direction.HORIZONTAL => List.iterate(firstCell, size)(cell => (cell._1, cell._2 + 1))
-                    case Direction.VERTICAL => List.iterate(firstCell, size)(cell => (cell._1 + 1, cell._2))
+                    case Direction.HORIZONTAL => List.iterate(firstCell, size)(cell => Cell(cell.x, cell.y+1))
+                    case Direction.VERTICAL => List.iterate(firstCell, size)(cell => Cell(cell.x+1, cell.y))
                 }
             }
             Some(Ship(descrShip._1, position.toSet))
