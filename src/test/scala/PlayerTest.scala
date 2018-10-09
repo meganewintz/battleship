@@ -1,7 +1,9 @@
-import action.HumanAction
+
+import actions._
 import org.scalatest._
-import actors._
+import basis._
 import game.CellState
+import game.ShotResult
 
 class PlayerTest extends FlatSpec with Matchers {
 
@@ -14,26 +16,16 @@ class PlayerTest extends FlatSpec with Matchers {
     val fleet = List(ship)
     val emptyGrid = Grid(List.fill(10,10)(CellState.EMPTY))
 
-    // getCellStateShipsGrid
+
+    // getCellStateShotsGrid
     // -----------------------------------------------------------------------
 
-    it should "get the state of cell in the shipsGrid" in {
-        player.getCellStateShipsGrid(Cell(1,1)) shouldEqual Some(CellState.SHIP)
+    it should "get the state of cell in the shotsGrid" in {
+        player.getCellStateShotsGrid(Cell(1,1)) shouldEqual Some(CellState.EMPTY)
     }
 
-    it should "return None because the cell isn't in the shipsGrid" in {
-        player.getCellStateShipsGrid(Cell(1,12)) shouldEqual None
-    }
-
-    // getCellStateShootsGrid
-    // -----------------------------------------------------------------------
-
-    it should "get the state of cell in the shootsGrid" in {
-        player.getCellStateShootsGrid(Cell(1,1)) shouldEqual Some(CellState.EMPTY)
-    }
-
-    it should "return None because the cell isn't in the shootsGrid" in {
-        player.getCellStateShootsGrid(Cell(1,12)) shouldEqual None
+    it should "return None because the cell isn't in the shotsGrid" in {
+        player.getCellStateShotsGrid(Cell(1,12)) shouldEqual None
     }
 
 
@@ -55,42 +47,42 @@ class PlayerTest extends FlatSpec with Matchers {
         player.isShipPlaceable(ship2) shouldEqual false
     }
 
-    // shipTouched
-    // -----------------------------------------------------------------------
-
-    it should "say that the specific ship is touch" in {
-        player.shipTouched(Cell(1,3)) shouldEqual Some(ship)
-    }
-
-    it should "return None because no ship was touched" in {
-        player.shipTouched(Cell(7,7)) shouldEqual None
-    }
-
-    // isShipSunk
-    // -----------------------------------------------------------------------
-
-    it should "say that the specific ship is sunk" in {
-        val shipSunk = Ship("Imperator", Set())
-        val playerShipSunk = playerEmpty.addShipToPlayer(shipSunk)
-
-        playerShipSunk.isShipSunk(shipSunk) shouldEqual true
-    }
-
-    it should "say that the specific ship is NOT sunk" in {
-        player.isShipSunk(ship) shouldEqual false
-    }
-
-    // isFleetSunk
-    // -----------------------------------------------------------------------
-
-    it should "return true because the fleet is sunk" in {
-        playerEmpty.isFleetSunk shouldEqual true
-    }
-
-    it should "return false because the fleet is NOT sunk" in {
-        player.isFleetSunk shouldEqual false
-    }
-
+//    // shipTouched
+//    // -----------------------------------------------------------------------
+//
+//    it should "say that the specific ship is touch" in {
+//        player.shipTouched(Cell(1,3)) shouldEqual Some(ship)
+//    }
+//
+//    it should "return None because no ship was touched" in {
+//        player.shipTouched(Cell(7,7)) shouldEqual None
+//    }
+//
+//    // isShipSunk
+//    // -----------------------------------------------------------------------
+//
+//    it should "say that the specific ship is sunk" in {
+//        val shipSunk = Ship("Imperator", Set())
+//        val playerShipSunk = playerEmpty.addShipToPlayer(shipSunk)
+//
+//        playerShipSunk.isShipSunk(shipSunk) shouldEqual true
+//    }
+//
+//    it should "say that the specific ship is NOT sunk" in {
+//        player.isShipSunk(ship) shouldEqual false
+//    }
+//
+//    // isFleetSunk
+//    // -----------------------------------------------------------------------
+//
+//    it should "return true because the fleet is sunk" in {
+//        playerEmpty.isFleetSunk shouldEqual true
+//    }
+//
+//    it should "return false because the fleet is NOT sunk" in {
+//        player.isFleetSunk shouldEqual false
+//    }
+//
     // incrementScore
     // -----------------------------------------------------------------------
 
@@ -129,99 +121,47 @@ class PlayerTest extends FlatSpec with Matchers {
         player.addShipToPlayer(shipOut) shouldEqual player
     }
 
-    // removeShipToPlayer
-    // -----------------------------------------------------------------------
-
-    it should "create a new Player without a ship in its fleet" in {
-        val shipsGrid = emptyGrid.updateMultipleCellsState(Set(Cell(1,1), Cell(1,2), Cell(1,3), Cell(1,4)), CellState.SHIP)
-        player.removeShipToPlayer(ship) shouldEqual Player("Megmeg", action = HumanAction, shipsGrid = shipsGrid, fleet = List())
-    }
-
-    // updateShipsGrid
-    // -----------------------------------------------------------------------
-
-    it should "create a new player with its shipsGrid updated" in {
-        val playerUp = player.updateShipsGrid(Cell(1,1), CellState.TOUCH)
-        playerUp.getCellStateShipsGrid(Cell(1,1)) shouldEqual Some(CellState.TOUCH)
-    }
-
-    it should "return the initial player because the cell does NOT belong to the shipsGrid" in {
-        val playerUp = player.updateShipsGrid(Cell(1,12), CellState.TOUCH)
-        playerUp shouldEqual player
-    }
-
-    // updateShootsGrid
-    // -----------------------------------------------------------------------
-
-    it should "create a new player with its shootsGrid updated" in {
-        val playerUp = player.updateShootsGrid(Cell(1,1), CellState.TOUCH)
-        playerUp.getCellStateShootsGrid(Cell(1,1)) shouldEqual Some(CellState.TOUCH)
-    }
-
-    it should "return the initial player because the cell does NOT belong to the shootsGrid" in {
-        val playerUp = player.updateShootsGrid(Cell(1,12), CellState.TOUCH)
-        playerUp shouldEqual player
-    }
-
-    // fleetTouched
-    // -----------------------------------------------------------------------
-
-    it should "create a new player by removing the cell of the ship touched" in {
-        val playerUp = player.fleetTouched(Cell(1,1))
-        (
-            player.shipTouched(Cell(1,1)) shouldEqual Some(ship),
-            playerUp.shipTouched(Cell(1,1)) shouldEqual None
-        )
-    }
-
-    it should "create a new player by removing the ship touched because it is sunk" in {
-        val player2Ships = player.addShipToPlayer(shipSize1)
-        val playerUp = player2Ships.fleetTouched(Cell(4,4))
-        (
-            playerUp.shipTouched(Cell(4,4)) shouldEqual None,
-            playerUp.fleet.length shouldEqual 1
-        )
-    }
-
-    it should "create a new player with its fleet sunk because we just sunk the last ship" in {
-        val playerSmall = playerEmpty.addShipToPlayer(shipSize1)
-        val playerUp = playerSmall.fleetTouched(Cell(4,4))
-        (
-            playerUp.shipTouched(Cell(4,4)) shouldEqual None,
-            playerUp.isFleetSunk() shouldEqual true
-        )
-    }
-
-    it should "return the initial player because no ships was touched" in {
-        val playerUp = player.fleetTouched(Cell(4,4))
-        playerUp shouldEqual player
-    }
-
     // addAdverseShoot
     // -----------------------------------------------------------------------
 
-//    it should "update the cell touched by the opponent (MISS)" in {
-//        val playerTouchedMiss = player.addOpponentShoot((2,2))
-//        playerTouchedMiss.getCellStateShipsGrid(2,2) shouldEqual Some(CellState.MISS)
-//    }
-//
-//    it should "update the cell touched by the opponent (TOUCH)" in {
-//        val playerTouchedTouch = player.addOpponentShoot((1,2))
-//        (
-//            playerTouchedTouch.getCellStateShipsGrid(1,2) shouldEqual Some(CellState.TOUCH),
-//            playerTouchedTouch.shipTouched(1,2) shouldEqual None
-//        )
-//    }
-//
-//    it should "return the initial player because the cell was already touched" in {
-//        val playerTouchedTouch = player.addOpponentShoot((1,2))
-//        val playerAlreadyTouch = player.addOpponentShoot((1,2))
-//        playerTouchedTouch shouldEqual playerAlreadyTouch
-//    }
-//
-//    it should "return the initial player because the cell is NOT belong to the shipsGrid" in {
-//        val playerTouchedOut = player.addOpponentShoot((1,13))
-//        playerTouchedOut shouldEqual player
-//    }
+    it should "return the result of the shot (MISS)" in {
+        val playerTouched = player.addOpponentShoot(Cell(2,2))
+        playerTouched._2 shouldEqual ShotResult.MISS
+    }
+
+    it should "return the result of the shot (TOUCH)" in {
+        val playerTouched = player.addOpponentShoot(Cell(1,2))
+        playerTouched._2 shouldEqual ShotResult.TOUCH
+    }
+
+    it should "return the result of the shot (SHIPSUNK)" in {
+        val playerWith2Ships = player.addShipToPlayer(shipSize1)
+        val playerTouched = playerWith2Ships.addOpponentShoot(Cell(4,4))
+        playerTouched._2 shouldEqual ShotResult.SHIPSUNK
+    }
+
+    it should "return the result of the shot (FLEETSUNK)" in {
+        val player1ship = playerEmpty.addShipToPlayer(shipSize1)
+        val playerTouched = player1ship.addOpponentShoot(Cell(4,4))
+        playerTouched._2 shouldEqual ShotResult.FLEETSUNK
+    }
+
+    it should "return the result of the shot (ALREADYSHOT)" in {
+        val playerTouched = player.addOpponentShoot(Cell(1,2))._1
+        val playerTouched2 = playerTouched.addOpponentShoot(Cell(1,2))
+        playerTouched2._2 shouldEqual ShotResult.ALREADYSHOOT
+    }
+
+    it should "return (the initial player, ALREADYTOUCHED) because the cell was already touched" in {
+        val playerTouchedTouch = player.addOpponentShoot(Cell(1,2))
+        val playerAlreadyTouch = playerTouchedTouch._1.addOpponentShoot(Cell(1,2))
+        playerAlreadyTouch shouldEqual (playerTouchedTouch._1, ShotResult.ALREADYSHOOT)
+    }
+
+    it should "return the initial player because the cell is NOT belong to the shipsGrid" in {
+        val playerTouchedOut = player.addOpponentShoot(Cell(1,13))
+        playerTouchedOut shouldEqual (player, ShotResult.MISS)
+    }
 
 }
+

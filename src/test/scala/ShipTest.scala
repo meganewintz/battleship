@@ -1,5 +1,5 @@
 import org.scalatest._
-import actors._
+import basis._
 
 class ShipTest extends FlatSpec with Matchers {
 
@@ -29,25 +29,13 @@ class ShipTest extends FlatSpec with Matchers {
         ship.isSunk shouldEqual false
     }
 
-    // removeSquareShip
+    // removeCell
     // -----------------------------------------------------------------------
 
     val shipMinus = Ship("Imperator", Set(Cell(1,2), Cell(1,3), Cell(1,4)))
 
     it should "remove a cell to the ship" in {
-        ship.removeSquareShip(Cell(1,1)) shouldEqual shipMinus
-    }
-
-    // willBeSunk
-    // -----------------------------------------------------------------------
-
-    it should "return false because the ship will be sunk" in {
-        ship.willBeSunk shouldEqual false
-    }
-
-    it should "return true because the ship will be sunk" in {
-        val shipDead = Ship("Imperator", Set(Cell(1,1)))
-        shipDead.willBeSunk shouldEqual true
+        ship.removeCell(Cell(1,1)) shouldEqual shipMinus
     }
 
 

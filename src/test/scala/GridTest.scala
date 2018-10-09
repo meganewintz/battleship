@@ -1,5 +1,5 @@
 import org.scalatest._
-import actors._
+import basis._
 import game.CellState
 
 class GridTest extends FlatSpec with Matchers{
@@ -7,7 +7,6 @@ class GridTest extends FlatSpec with Matchers{
 
     // getCellState
     // -----------------------------------------------------------------------
-
 
     it should "get the state of a specific cell" in {
         grid.getCellState(Cell(1,1)) shouldEqual Some(CellState.EMPTY)
