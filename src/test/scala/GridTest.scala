@@ -1,5 +1,5 @@
 import org.scalatest._
-import actors._
+import basis._
 import game.CellState
 
 class GridTest extends FlatSpec with Matchers{
@@ -8,13 +8,12 @@ class GridTest extends FlatSpec with Matchers{
     // getCellState
     // -----------------------------------------------------------------------
 
-
     it should "get the state of a specific cell" in {
-        grid.getCellState(1,1) shouldEqual Some(CellState.EMPTY)
+        grid.getCellState(Cell(1,1)) shouldEqual Some(CellState.EMPTY)
     }
 
     it should "return None because the cell doesn't belong to the grid" in {
-        grid.getCellState(11,1) shouldEqual None
+        grid.getCellState(Cell(11,1)) shouldEqual None
     }
 
     // isCellBelongsTo
@@ -22,37 +21,37 @@ class GridTest extends FlatSpec with Matchers{
 
 
     it should "return true because the cell belongs to the grid" in {
-        grid.isCellBelongsTo(1,1) shouldEqual true
+        grid.isCellBelongsTo(Cell(1,1)) shouldEqual true
     }
 
     it should "return false because the cell doesn't belong to the grid" in {
-        grid.isCellBelongsTo(11,1) shouldEqual false
+        grid.isCellBelongsTo(Cell(11,1)) shouldEqual false
     }
 
     // updateCellState
     // -----------------------------------------------------------------------
 
-    val gridUpCell = grid.updateCellState((1,1), CellState.SHIP)
+    val gridUpCell = grid.updateCellState(Cell(1,1), CellState.SHIP)
 
     it should "update the state of a specific cell" in {
-        gridUpCell.getCellState((1,1)) shouldEqual Some(CellState.SHIP)
+        gridUpCell.getCellState(Cell(1,1)) shouldEqual Some(CellState.SHIP)
     }
 
     // updateMultipleCellsState
     // -----------------------------------------------------------------------
 
-    val gridUpMultipleCells =  grid.updateMultipleCellsState(Set((1,1), (1,3), (1,5)), CellState.SHIP)
+    val gridUpMultipleCells =  grid.updateMultipleCellsState(Set(Cell(1,1), Cell(1,3), Cell(1,5)), CellState.SHIP)
 
     it should "update the state of multiple cells" in {
         (
-            gridUpMultipleCells.getCellState((1,1)) shouldEqual Some(CellState.SHIP),
-            gridUpMultipleCells.getCellState((1,3)) shouldEqual Some(CellState.SHIP),
-            gridUpMultipleCells.getCellState((1,5)) shouldEqual Some(CellState.SHIP)
+            gridUpMultipleCells.getCellState(Cell(1,1)) shouldEqual Some(CellState.SHIP),
+            gridUpMultipleCells.getCellState(Cell(1,3)) shouldEqual Some(CellState.SHIP),
+            gridUpMultipleCells.getCellState(Cell(1,5)) shouldEqual Some(CellState.SHIP)
         )
     }
 
     it should "return the initial grid because one of the cell doesn't belong to the grid" in {
-        grid.updateMultipleCellsState(Set((1,1), (1,12), (1,5)), CellState.SHIP) shouldEqual grid
+        grid.updateMultipleCellsState(Set(Cell(1,1), Cell(1,12), Cell(1,5)), CellState.SHIP) shouldEqual grid
     }
 
     it should "return the initial grid because the set of cell is empty" in {

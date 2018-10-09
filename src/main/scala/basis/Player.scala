@@ -1,16 +1,30 @@
-package actors
-import action.Action
+package basis
+import actions.Action
 import game.CellState
-import game.ShootResult
+import game.ShotResult
 
+/**
+  * The core data of the game. Contain all the data relative to a player.
+  *
+  * @param name the name of the player
+  * @param score the score of the player
+  * @param fistPlayer true if the player start first the game
+  * @param shipsGrid the grid of ships of the player
+  * @param shotsGrid the grid of the shots of the player
+  * @param fleet the fleet of the player, containing its ships
+  * @param action the Action set for the player
+  * @param shots the previous shots of the player
+  */
 case class Player(
                      name: String,
                      score: Int = 0,
                      fistPlayer: Boolean = false,
                      shipsGrid: Grid = Grid(List.fill(10,10)(CellState.EMPTY)),
-                     shootsGrid: Grid = Grid(List.fill(10,10)(CellState.EMPTY)),
+                     shotsGrid: Grid = Grid(List.fill(10,10)(CellState.EMPTY)),
                      fleet: List[Ship] = List(),
-                     action: Action
+                     action: Action,
+                     shots: List[Tuple2[Cell, ShotResult.Value]] = List()
+
                  ) {
 
     /**
@@ -19,28 +33,28 @@ case class Player(
       * @param cell
       * @return an option value containing the state of the cell. None if cell doesn't belong to the shipsGrid.
       */
-    def getCellStateShipsGrid(cell: Tuple2[Int, Int]): Option[CellState.Value] = {
+    private def getCellStateShipsGrid(cell: Cell): Option[CellState.Value] = {
         shipsGrid.getCellState(cell)
     }
 
     /**
-      * get the state of the cell, of the shootsGrid.
+      * get the state of the cell, of the shotsGrid.
       *
       * @param cell
-      * @return an option value containing the state of the cell. None if cell doesn't belong to the shootsGrid.
+      * @return an option value containing the state of the cell. None if cell doesn't belong to the shotsGrid.
       */
-    def getCellStateShootsGrid(cell: Tuple2[Int, Int]): Option[CellState.Value] = {
-        shootsGrid.getCellState(cell)
+    def getCellStateShotsGrid(cell: Cell): Option[CellState.Value] = {
+        shotsGrid.getCellState(cell)
     }
 
     /**
-      * Check if all the squares of the ship are correct: the coords belong to the grid and not already occupied by a ship.
+      * Check if all the cells of the ship are correct: the coords belong to the grid and not already occupied by a ship.
       *
       * @param ship
       * @return true if the ship is placeable, else false.
       */
     def isShipPlaceable(ship: Ship): Boolean = {
-        ship.position.forall(p => shipsGrid.isCellBelongsTo(p) && this.shipsGrid.cells(p._1)(p._2).equals(CellState.EMPTY))
+        ship.position.forall(p => shipsGrid.isCellBelongsTo(p) && this.shipsGrid.cells(p.x)(p.y).equals(CellState.EMPTY))
     }
 
     /**
@@ -49,7 +63,7 @@ case class Player(
       * @param cell
       * @return an option value containing the ship touched. None if no ship was touched.
       */
-    def shipTouched(cell: Tuple2[Int,Int]): Option[Ship] = {
+    private def shipTouched(cell: Cell): Option[Ship] = {
         fleet.find( x => x.isTouched(cell))
     }
     /**
@@ -58,7 +72,7 @@ case class Player(
       * @param ship
       * @return true if the ship is sunk. Else false
       */
-    def isShipSunk(ship: Ship): Boolean = {
+    private def isShipSunk(ship: Ship): Boolean = {
         if (fleet.contains(ship)) { ship.isSunk}
         else false
     }
@@ -68,7 +82,7 @@ case class Player(
       *
       * @return true if the fleet is sunk.
       */
-    def isFleetSunk(): Boolean = fleet.isEmpty
+    private def isFleetSunk(): Boolean = fleet.isEmpty
 
     /**
       * Create a new player by incrementing the score of the player + 1.
@@ -88,10 +102,10 @@ case class Player(
     def ressetPlayer(): Player = {
 
         if (fistPlayer) {
-            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = false)
+            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shotsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = false)
         }
         else {
-            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shootsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = true)
+            copy(fleet = List(), shipsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), shotsGrid = Grid(List.fill(10,10)(CellState.EMPTY)), fistPlayer = true)
         }
     }
 
@@ -125,7 +139,7 @@ case class Player(
       * @param ship
       * @return a new player without the ship specify in its fleet.
       */
-    def removeShipToPlayer(ship: Ship): Player = {
+    private def removeShipToPlayer(ship: Ship): Player = {
         val newFleet = fleet.filterNot(x => x == ship)
         copy(fleet = newFleet)
     }
@@ -139,28 +153,28 @@ case class Player(
       * @param newState
       * @return a new Player with one of the cell of its shipsGrid updated.
       */
-    def updateShipsGrid(cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
+    private def updateShipsGrid(cell: Cell, newState: CellState.Value): Player = {
         val newGrid = shipsGrid.updateCellState(cell, newState)
         copy(shipsGrid = newGrid)
     }
 
     /**
-      * create a new Player with one of the cell of its shootsGrid updated.
-      * The cell must belongs to the shootsGrid.
+      * create a new Player with one of the cell of its shotsGrid updated.
+      * The cell must belongs to the shotsGrid.
       * If not, the initial player is return.
       *
       * @param cell
       * @param newState
-      * @return a new Player with one of the cell of its shootsGrid updated.
+      * @return a new Player with one of the cell of its shotsGrid updated.
       */
-    def updateShootsGrid(cell: Tuple2[Int, Int], newState: CellState.Value): Player = {
-        val newGrid = shootsGrid.updateCellState(cell, newState)
-        copy(shootsGrid = newGrid)
+    private def updateShootsGrid(cell: Cell, newState: CellState.Value): Player = {
+        val newGrid = shotsGrid.updateCellState(cell, newState)
+        copy(shotsGrid = newGrid)
 
     }
 
     /**
-      * Create a new player by removing the square of the ship touched.
+      * Create a new player by removing the cell of the ship touched.
       * NOT change its grids, only affect its fleet.
       * If the ship is sunk, removed it from the fleet.
       * If no ship was touched, simply return the player.
@@ -168,14 +182,14 @@ case class Player(
       * @param cell
       * @return a new player with the ship touched updated.
       */
-    def fleetTouched(cell: Tuple2[Int, Int]): Player = {
+    private def fleetTouched(cell: Cell): Player = {
 
         val shipT = shipTouched(cell)
 
         // If there is not ship touched.
         if (shipT.isEmpty) this
         else {
-            val newShip = shipT.get.removeSquareShip(cell)
+            val newShip = shipT.get.removeCell(cell)
 
             // If the ship is sunk, we remove it.
             if (newShip.isSunk) {
@@ -198,80 +212,88 @@ case class Player(
       * @param cell
       * @return a new player, and the result of the shoot.
       */
-    def addOpponentShoot(cell: Tuple2[Int, Int]): (Player, ShootResult.Value) = {
+    def addOpponentShoot(cell: Cell): (Player, ShotResult.Value) = {
 
         val cellState = getCellStateShipsGrid(cell)
 
-        if (cellState.isEmpty) (this, ShootResult.MISS)
+        if (cellState.isEmpty) (this, ShotResult.MISS)
         else {
             cellState.get match {
                 // If there is no ship, we mark miss on our shipsGrid
-                case CellState.EMPTY => (updateShipsGrid(cell, CellState.MISS), ShootResult.MISS)
+                case CellState.EMPTY => (updateShipsGrid(cell, CellState.MISS), ShotResult.MISS)
                 // If there is a ship, we update the fleet and the shipsGrid
                 case CellState.SHIP => {
+                    //update the grid
+                    val playerShipsGridUpdated = updateShipsGrid(cell, CellState.TOUCH)
 
                     val shipT = shipTouched(cell)
 
                     // Not ship touched. (Normally not possible)
-                    if (shipT.isEmpty) (this, ShootResult.MISS)
+                    if (shipT.isEmpty) (this, ShotResult.MISS)
                     else {
-                        val newShip = shipT.get.removeSquareShip(cell)
+                        val newShip = shipT.get.removeCell(cell)
 
                         // Ship touched - sunk. We remove the ship.
                         if (newShip.isSunk) {
                             val newFleet = fleet.filterNot( s => s == shipT.get)
-                            val newPlayer = copy(fleet = newFleet)
+                            val newPlayer = playerShipsGridUpdated.copy(fleet = newFleet)
                             // Fleet sunk.
-                            if (newPlayer.isFleetSunk()) (newPlayer, ShootResult.FLEETSUNK)
+                            if (newPlayer.isFleetSunk()) (newPlayer, ShotResult.FLEETSUNK)
                             // Fleet not sunk
-                            else (newPlayer, ShootResult.SHIPSUNK)
+                            else (newPlayer, ShotResult.SHIPSUNK)
 
                         }
-                        // Ship touched - not sunk. Remove square from ship, update shipsGrid.
+                        // Ship touched - not sunk. Remove cell from ship, update shipsGrid.
                         else {
                             val newFleet = fleet.updated(fleet.indexOf(shipT.get), newShip)
-                            val newShipsGrid = shipsGrid.updateCellState(cell, CellState.TOUCH)
-                            (copy(fleet = newFleet, shipsGrid = newShipsGrid), ShootResult.TOUCH)
+                            (playerShipsGridUpdated.copy(fleet = newFleet), ShotResult.TOUCH)
                         }
                     }
                 }
                 // Else, cell already touched
-                case _ => (this, ShootResult.ALREADYSHOOT)
+                case _ => (this, ShotResult.ALREADYSHOOT)
             }
         }
     }
 
     /**
-      * actualise the shootsGrid of the player according to the result of shoot.
+      * actualise the shotsGrid of the player according to the result of shoot.
       *
       * @param cell the cell concerned
       * @param resShoot
       * @return
       */
-    def addOwnShoot(cell: Tuple2[Int, Int], resShoot: ShootResult.Value): Player = {
+    def addOwnShoot(cell: Cell, resShoot: ShotResult.Value): Player = {
+        val playerAddShoot = copy(shots = (cell, resShoot) :: shots)
         resShoot match {
-            case ShootResult.MISS => {
-                val newPlayer = updateShootsGrid(cell, CellState.MISS)
-                action.displayResultShoot(newPlayer, resShoot)
+            case ShotResult.MISS => {
+                val newPlayer = playerAddShoot.updateShootsGrid(cell, CellState.MISS)
+                action.displayResultShot(newPlayer, resShoot)
                 newPlayer
             }
-            case ShootResult.TOUCH => {
-                val newPlayer = updateShootsGrid(cell, CellState.TOUCH)
-                action.displayResultShoot(newPlayer, resShoot)
+            case ShotResult.TOUCH => {
+                val newPlayer = playerAddShoot.updateShootsGrid(cell, CellState.TOUCH)
+                action.displayResultShot(newPlayer, resShoot)
                 newPlayer
             }
-            // Already touch, don't need to update the shootsGrid
-            case _ => action.displayResultShoot(this, resShoot); this
+            // Already touch, don't need to update the shotsGrid
+            case _ => action.displayResultShot(playerAddShoot, resShoot); playerAddShoot
         }
     }
 
-    /*
-    dans tous les cas: afficher le res, retourner le player
-    cas touch et manquer: updtae la grille
-     */
-
+    /**
+      * Create a new player by setting his fleet.
+      *
+      * @param descrShips : list the different names and of the ship required and its size associated
+      * @return: a new player with his fleet completed.
+      */
     def initialiseFleet(descrShips: List[Tuple2[String,Int]]): Player = action.initialiseFleet(this, descrShips)
 
-    def shoot(): Tuple2[Int, Int] = action.shoot(this)
+    /**g
+      * Shoot on a cell.
+      *
+      * @return the target cell
+      */
+    def shoot(): Cell = action.shoot(this)
 
 }

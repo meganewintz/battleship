@@ -1,11 +1,14 @@
-package action
+package actions
 
-import actors._
-import game.ShootResult
+import basis._
+import game.ShotResult
 import game.Utility._
 
 import scala.io.StdIn.readLine
 
+/**
+  * It defined the way to play for an user.
+  */
 object HumanAction extends Action {
 
     /**
@@ -13,22 +16,24 @@ object HumanAction extends Action {
       * He can enter: A1
       * The result looks like: (0,0)
       *
-      * @return a Tuple2 containing the coordinates choose by the user.
+      * @return a cell corresponding to the coordinates choose by the user.
       */
-    override def getCoordinatesCell: Tuple2[Int, Int] = {
+    override def getCoordinatesCell: Cell = {
         showPromptCell()
         val userInput = getUserInput() // ex received : A1
 
-        if (userInput.length != 2) {
+        if (userInput.length < 2) {
             showInvalidCoordMessage; getCoordinatesCell
         }
         else {
-            val coord = userInput.split("") // ex: ("A", "1")
+            val coord0 = userInput.head.toString
+            val coord1 = userInput.tail
 
-            if (mapLetterCoord.contains(coord(0)) && mapNumberCoord.contains(coord(1))) {
-                return (mapNumberCoord.apply(coord(1)), mapLetterCoord.apply(coord(0)))
+            if (mapLetterCoord.contains(coord0) && mapNumberCoord.contains(coord1)) {
+                return Cell(mapNumberCoord.apply(coord1), mapLetterCoord.apply(coord0))
             }
-            else showInvalidCoordMessage; getCoordinatesCell
+            else showInvalidCoordMessage;
+            getCoordinatesCell
         }
     }
 
@@ -50,10 +55,11 @@ object HumanAction extends Action {
 
     /**
       * Create a new player by setting his fleet.
+      * It's an user: we ask to the user to place each ship.
       *
-      * @param board: the board concerned
-      * @param descrShips: list the different names and of the ship required and its size associated
-      * @return: a new player with his fleet completed.
+      * @param player the player concerned
+      * @param descrShips list the different names and of the ship required and its size associated
+      * @return a new player with his fleet completed.
       */
     override def initialiseFleet(player: Player, descrShips: List[Tuple2[String,Int]]): Player = {
 
@@ -70,7 +76,7 @@ object HumanAction extends Action {
             // We are sure that the cell, direction and description are correct
             val ship = Ship(firstCellShip, directionShip, descrShips.head).get
 
-            // If the ship is placeabled, we add it to the board and go to the next ship
+            // If the ship is placeabled, we add it to the player and go to the next ship
             if (player.isShipPlaceable(ship)) {
                 val newBoard = player.addShipToPlayer(ship)
                 clear
@@ -81,19 +87,31 @@ object HumanAction extends Action {
         }
     }
 
-    def shoot(player: Player): Tuple2[Int, Int] = {
+    /**
+      * The user shoot on a cell.
+      *
+      * @param player the shooter
+      * @return the target cell
+      */
+    override def shoot(player: Player): Cell = {
         println(player.shipsGrid + "\n")
-        println(player.shootsGrid)
+        println(player.shotsGrid)
         showPlayerTour(player)
         getCoordinatesCell
     }
 
 
-    override def displayResultShoot(player: Player,resShoot: ShootResult.Value ): Unit = {
+    /**
+      * Display the result of the shot: his grids and the message displaying the result.
+      *
+      * @param player the shooter
+      * @param resShot the result of his shot
+      */
+    override def displayResultShot(player: Player, resShot: ShotResult.Value ): Unit = {
         clear
         println(player.shipsGrid + "\n")
-        println(player.shootsGrid)
-        println(resShoot)
+        println(player.shotsGrid)
+        println(resShot)
         showContinueMessage
         readLine()
     }
