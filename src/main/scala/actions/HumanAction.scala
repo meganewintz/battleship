@@ -1,11 +1,14 @@
-package action
+package actions
 
-import actors._
+import basis._
 import game.ShotResult
 import game.Utility._
 
 import scala.io.StdIn.readLine
 
+/**
+  * It defined the way to play for an user.
+  */
 object HumanAction extends Action {
 
     /**
@@ -19,13 +22,19 @@ object HumanAction extends Action {
         showPromptCell()
         val userInput = getUserInput() // ex received : A1
 
-        val coord0 = userInput.head.toString
-        val coord1 = userInput.tail
-
-        if (mapLetterCoord.contains(coord0) && mapNumberCoord.contains(coord1)) {
-            return Cell(mapNumberCoord.apply(coord1), mapLetterCoord.apply(coord0))
+        if (userInput.length < 2) {
+            showInvalidCoordMessage; getCoordinatesCell
         }
-        else showInvalidCoordMessage; getCoordinatesCell
+        else {
+            val coord0 = userInput.head.toString
+            val coord1 = userInput.tail
+
+            if (mapLetterCoord.contains(coord0) && mapNumberCoord.contains(coord1)) {
+                return Cell(mapNumberCoord.apply(coord1), mapLetterCoord.apply(coord0))
+            }
+            else showInvalidCoordMessage;
+            getCoordinatesCell
+        }
     }
 
     /**
@@ -86,7 +95,7 @@ object HumanAction extends Action {
       */
     override def shoot(player: Player): Cell = {
         println(player.shipsGrid + "\n")
-        println(player.shootsGrid)
+        println(player.shotsGrid)
         showPlayerTour(player)
         getCoordinatesCell
     }
@@ -101,7 +110,7 @@ object HumanAction extends Action {
     override def displayResultShot(player: Player, resShot: ShotResult.Value ): Unit = {
         clear
         println(player.shipsGrid + "\n")
-        println(player.shootsGrid)
+        println(player.shotsGrid)
         println(resShot)
         showContinueMessage
         readLine()

@@ -1,7 +1,12 @@
-package actors
+package basis
 
 import game.CellState
 
+/**
+  * Represent the grid in the battleship. Manage the state of the cells.
+  *
+  * @param cells the cells of the grid with a value CellState.Value inside.
+  */
 case class Grid(cells: List[List[CellState.Value]]) {
 
     /**

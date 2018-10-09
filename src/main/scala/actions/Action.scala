@@ -1,11 +1,12 @@
-package action
+package actions
 
-import actors._
-import game.Utility._
+import basis._
 import game._
 
-import scala.io.StdIn.readLine
-
+/**
+  * Defined the behaviors of an Action.
+  * An Action correspond to the interactions available for the players during the game.
+  */
 trait Action {
 
 
@@ -26,7 +27,7 @@ trait Action {
       */
     def initialiseFleet(player: Player, descrShips: List[Tuple2[String, Int]]): Player
 
-    /**
+    /**g
       * Shoot on a cell.
       *
       * @param player the shooter

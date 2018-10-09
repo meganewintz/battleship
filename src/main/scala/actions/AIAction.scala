@@ -1,13 +1,13 @@
-package action
+package actions
 
-import actors._
+import basis._
 import game.{CellState, ShotResult}
 import game.Utility.Direction
 import game.Utility._
 
 
 
-abstract class AIAction extends Action {
+trait AIAction extends Action {
 
     /**
       * Get random coordinates

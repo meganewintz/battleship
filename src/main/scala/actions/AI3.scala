@@ -1,10 +1,13 @@
-package action
+package actions
 
-import actors.{Cell, Player}
+import basis.{Cell, Player}
 import game.{CellState, ShotResult}
 import game.Utility.GridSize
 
-object AIAction3 extends AIAction {
+/**
+  * It defined the way to shoot for the AI Level Hard.
+  */
+object AI3 extends AIAction {
 
     /**
       * Shoot smartly on a cell.
@@ -83,7 +86,7 @@ object AIAction3 extends AIAction {
       */
     def shootRandomCellNotTouched(player: Player): Cell = {
         val s = getCoordinatesCell
-        val cellStateShoot = player.getCellStateShootsGrid(s).get
+        val cellStateShoot = player.getCellStateShotsGrid(s).get
 
         // if case already touched, shoot again.
         if (cellStateShoot == CellState.TOUCH || cellStateShoot == CellState.MISS) shoot(player)
@@ -139,11 +142,22 @@ object AIAction3 extends AIAction {
       * Test if the player has already shot this cell and if its value is TOUCH.
       * @param player the player which we test if his cell is touched.
       * @param cell
-      * @return true if the specific cell is TOUCH in the shootsGrid of the player.
+      * @return true if the specific cell is TOUCH in the shotsGrid of the player.
       */
     def isCellTouched(player: Player, cell: Cell): Boolean = {
-        val cellState = player.getCellStateShootsGrid(cell)
+        val cellState = player.getCellStateShotsGrid(cell)
         cellState.isDefined && cellState.get == CellState.TOUCH
+    }
+
+    /**
+      * Test if the player has already shot this cell and if its value is MISS.
+      * @param player the player which we test if his cell is MISS.
+      * @param cell
+      * @return true if the specific cell is MISS in the shotsGrid of the player.
+      */
+    def isCellMiss(player: Player, cell: Cell): Boolean = {
+        val cellState = player.getCellStateShotsGrid(cell)
+        cellState.isDefined && cellState.get == CellState.MISS
     }
 
     /**
@@ -163,7 +177,7 @@ object AIAction3 extends AIAction {
       * @return true if the user already shot this cell.
       */
     def isAlreadyShot(player: Player, cell: Cell): Boolean = {
-        player.getCellStateShootsGrid(cell).get != CellState.EMPTY
+        player.getCellStateShotsGrid(cell).get != CellState.EMPTY
     }
 
     /**
@@ -213,20 +227,22 @@ object AIAction3 extends AIAction {
         val nextCell = nextLeft(firstCell)
 
         if (isOutOfBound(nextCell)) None
-        else if (isAlreadyShot(player, nextCell)) {
+        else if (isCellTouched(player, nextCell)) {
             // on check si la case suivante gauche 2 fois
             val nextCell2 = nextLeft(nextCell)
 
             if (isOutOfBound(nextCell2)) None
-            else if (isAlreadyShot(player, nextCell2)) {
+            else if (isCellTouched(player, nextCell2)) {
 
                 val nextCell3 = nextLeft(nextCell2)
 
                 if (isOutOfBound(nextCell3) || isAlreadyShot(player, nextCell3)) None
                 else Some(nextCell3)
             }
+            else if(isCellMiss(player, nextCell2)) None
             else Some(nextCell2)
         }
+        else if(isCellMiss(player, nextCell)) None
         // The nextCell is available
         else Some(nextCell)
     }
@@ -245,23 +261,25 @@ object AIAction3 extends AIAction {
         val firstCell = cellsOrdered.head
         val secondCell = cellsOrdered.last
 
-        val nextCell= nextRight(secondCell)
+        val nextCell = nextRight(firstCell)
 
         if (isOutOfBound(nextCell)) None
-        else if (isAlreadyShot(player, nextCell)) {
+        else if (isCellTouched(player, nextCell)) {
             // on check si la case suivante gauche 2 fois
             val nextCell2 = nextRight(nextCell)
 
             if (isOutOfBound(nextCell2)) None
-            else if (isAlreadyShot(player, nextCell2)) {
+            else if (isCellTouched(player, nextCell2)) {
 
                 val nextCell3 = nextRight(nextCell2)
 
                 if (isOutOfBound(nextCell3) || isAlreadyShot(player, nextCell3)) None
                 else Some(nextCell3)
             }
+            else if(isCellMiss(player, nextCell2)) None
             else Some(nextCell2)
         }
+        else if(isCellMiss(player, nextCell)) None
         // The nextCell is available
         else Some(nextCell)
     }
@@ -280,23 +298,25 @@ object AIAction3 extends AIAction {
         val firstCell = cellsOrdered.head
         val secondCell = cellsOrdered.last
 
-        val nextCell= nextUp(secondCell)
+        val nextCell = nextUp(firstCell)
 
         if (isOutOfBound(nextCell)) None
-        else if (isAlreadyShot(player, nextCell)) {
+        else if (isCellTouched(player, nextCell)) {
             // on check si la case suivante gauche 2 fois
             val nextCell2 = nextUp(nextCell)
 
             if (isOutOfBound(nextCell2)) None
-            else if (isAlreadyShot(player, nextCell2)) {
+            else if (isCellTouched(player, nextCell2)) {
 
                 val nextCell3 = nextUp(nextCell2)
 
                 if (isOutOfBound(nextCell3) || isAlreadyShot(player, nextCell3)) None
                 else Some(nextCell3)
             }
+            else if(isCellMiss(player, nextCell2)) None
             else Some(nextCell2)
         }
+        else if(isCellMiss(player, nextCell)) None
         // The nextCell is available
         else Some(nextCell)
     }
@@ -315,23 +335,25 @@ object AIAction3 extends AIAction {
         val firstCell = cellsOrdered.head
         val secondCell = cellsOrdered.last
 
-        val nextCell= nextDown(secondCell)
+        val nextCell = nextDown(secondCell)
 
         if (isOutOfBound(nextCell)) None
-        else if (isAlreadyShot(player, nextCell)) {
+        else if (isCellTouched(player, nextCell)) {
             // on check si la case suivante gauche 2 fois
             val nextCell2 = nextDown(nextCell)
 
             if (isOutOfBound(nextCell2)) None
-            else if (isAlreadyShot(player, nextCell2)) {
+            else if (isCellTouched(player, nextCell2)) {
 
                 val nextCell3 = nextDown(nextCell2)
 
                 if (isOutOfBound(nextCell3) || isAlreadyShot(player, nextCell3)) None
                 else Some(nextCell3)
             }
+            else if(isCellMiss(player, nextCell2)) None
             else Some(nextCell2)
         }
+        else if(isCellMiss(player, nextCell)) None
         // The nextCell is available
         else Some(nextCell)
     }
