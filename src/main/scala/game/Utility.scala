@@ -130,7 +130,7 @@ object Utility {
 
     def showPlayAgainMessage: Unit = println("\nDo you want to play again? (Y)es/(N)o.")
 
-    def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine")
+    def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine")
 
     def showChoiceAILevelMessage: Unit = println("\nChoose the level of the machine:\n 1: level Beginner \n 2: level Medium \n 3: level Hard")
 
@@ -176,7 +176,6 @@ object Utility {
         userInput match {
             case "1" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
             case "2" => levelChoice
-            case "3" => GameState(Player("AI Level Hard", fistPlayer = true, action = AI3), Player("AI Level Medium", action = AI2), loop = 100)
             case _ => showInvalidAnswer; getChoiceGame
         }
     }
