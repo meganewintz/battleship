@@ -1,11 +1,12 @@
 package game
 
 
-import action._
-import actors._
+import actions._
+import basis._
 
 import scala.annotation.tailrec
 import scala.io.StdIn.readLine
+import scala.reflect.io.File
 import scala.sys.process._
 
 object CellState extends Enumeration {
@@ -92,6 +93,17 @@ object Utility {
       */
     val descrShips = List(("Carrier", 5), ("Battleship", 4), ("Cruiser", 3), ("Submarine", 3), ("Destroyer", 2))
 
+    /**
+      * The ships list for the game: name and size.
+      */
+    val battleAIs = List(
+        GameState(Player("AI Level Medium", fistPlayer = true, action = AI2), Player("AI Level Hard", action = AI3), loop = 100),
+        GameState(Player("AI Level Beginner", fistPlayer = true, action = AI1), Player("AI Level Hard", action = AI3), loop = 100),
+        GameState(Player("AI Level Beginner", fistPlayer = true, action = AI1), Player("AI Level Medium", action = AI2), loop = 100)
+
+
+    )
+
 
     /**
       * To clear the termiNal
@@ -102,7 +114,7 @@ object Utility {
 
     def showPlayerWinnerMessage(player: Player): Unit = println("\n" + player.name + " win the game!")
 
-    def showPlaceShipMessage(player: Player, name: String, sizeShip: Int): Unit = println("\n" + player.name + " place the "+ name + " of size " + sizeShip +"")
+    def showPlaceShipMessage(player: Player, name: String, sizeShip: Int): Unit = println("\n" + player.name + " place the " + name + " of size " + sizeShip + "")
 
     def showPromptStartCellShip(): Unit = println("\nEnter the cell of the ship. Ex: A1 :")
 
@@ -120,12 +132,12 @@ object Utility {
 
     def showChoiceGameMessage: Unit = println("\nChoose your game:\n 1: Human VS Human \n 2: Human VS Machine \n 3: Machine VS Machine")
 
-    def showChoiceAILevelMessage: Unit =  println("\nChoose the level of the machine:\n 1: level Beginner \n 2: level Medium \n 3: level Hard")
+    def showChoiceAILevelMessage: Unit = println("\nChoose the level of the machine:\n 1: level Beginner \n 2: level Medium \n 3: level Hard")
 
-    def showContinueMessage: Unit =  println("\nPress any key to continue.")
+    def showContinueMessage: Unit = println("\nPress any key to continue.")
 
-    def showInvalidAnswer: Unit = println("\nInvalid answer. Try again.")
-;
+    def showInvalidAnswer: Unit = println("\nInvalid answer. Try again.");
+
     def showScorePlayer(player: Player): Unit = println("\n" + player.name + ": " + player.score + " points")
 
     def getUserInput(): String = readLine.trim.toUpperCase
@@ -142,7 +154,7 @@ object Utility {
         val userInput = getUserInput()
 
         userInput match {
-            case PlayAgain.YES =>  true
+            case PlayAgain.YES => true
             case PlayAgain.NO => false
             case _ => showInvalidAnswer; getPlayAgainActionUser
         }
@@ -162,9 +174,9 @@ object Utility {
         val userInput = getUserInput()
 
         userInput match {
-            case "1" =>  GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
+            case "1" => GameState(Player("Player1", fistPlayer = true, action = HumanAction), Player("Player2", action = HumanAction))
             case "2" => levelChoice
-            case "3" => GameState(Player("AI Level Hard", fistPlayer = true, action = AIAction3), Player("AI Level Hard", action = AIAction3), loop = 100)
+            case "3" => GameState(Player("AI Level Hard", fistPlayer = true, action = AI3), Player("AI Level Medium", action = AI2), loop = 100)
             case _ => showInvalidAnswer; getChoiceGame
         }
     }
@@ -174,22 +186,21 @@ object Utility {
         val userInput = getUserInput()
 
         userInput match {
-            case "1" =>  GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Beginner", action = AIAction1))
-            case "2" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Medium", action = AIAction2))
-            case "3" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Hard", action = AIAction3))
+            case "1" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Beginner", action = AI1))
+            case "2" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Medium", action = AI2))
+            case "3" => GameState(Player("Player", fistPlayer = true, action = HumanAction), Player("AI Level Hard", action = AI3))
             case _ => showInvalidAnswer; getChoiceGame
         }
     }
 
-
     /**
       * Loop of the shoots player. The loop finish when a player win, the adverse fleet is sunk.
       *
-      * @param activePlayer the active player
+      * @param activePlayer  the active player
       * @param passivePlayer the passive player
-      * @return (Player,Player) the first player represent the winner and the second the looser
+      * @return (Player,Player) the first player represent the looser and the second the winner
       */
-    def shootsLoop(activePlayer: Player, passivePlayer: Player): Tuple2[Player,Player] = {
+    def shootsLoop(activePlayer: Player, passivePlayer: Player): Tuple2[Player, Player] = {
 
         // Ask the shoot cell to the active player
         val cell = activePlayer.shoot()
@@ -202,95 +213,24 @@ object Utility {
             case ShotResult.FLEETSUNK => {
                 // increamente the score of the winner
                 val activePlayerWinner = activePlayer.incrementScore()
-                (activePlayerWinner, newPassivePlayer)
+                (newPassivePlayer, activePlayerWinner)
             }
             case _ => {
                 val newActivePlayer = activePlayer.addOwnShoot(cell, shootRes)
                 shootsLoop(newPassivePlayer, newActivePlayer)
             }
         }
-
-//        // Take the state of the cell shoot
-//        val cellState = passivePlayer.getCellStateShipsGrid(cell).get
-//        println("cell state: " + cellState + "\n")
-
-//        cellState match {
-//
-//            case CellState.EMPTY    => {
-//                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.MISS)
-//                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
-//                clear
-//                println(newActivePlayer.shipsGrid + "\n")
-//                println(newActivePlayer.shootsGrid)
-//                showMissShotMessage
-//                showContinueMessage
-//                readLine()
-//                shootsLoop(newPassivePlayer, newActivePlayer)
-//            }
-//
-//
-//            // If there is a ship, we update the fleet and the shipsGrid of the passive player
-//            case CellState.SHIP     => {
-//                val shipTouch = passivePlayer.shipTouched(cell).get
-//                val newActivePlayer = activePlayer.updateShootsGrid(cell, CellState.TOUCH)
-//                val newPassivePlayer = passivePlayer.addOpponentShoot(cell)
-//                clear
-//                println(newActivePlayer.shipsGrid + "\n")
-//                println(newActivePlayer.shootsGrid)
-//                showTouchShipMessage
-//                // check if the ship sie is 1 and it was touched, we will be sunk.
-//                if (shipTouch.willBeSunk) {
-//                    showSunkShipMessage
-//                    // check if the fleet is sunk ==> active player win
-//                    if (newPassivePlayer.isFleetSunk()) {
-//                        showSunkFleetMessage
-//                        // increamente the score of the winner
-//                        val activePlayerWinner = newActivePlayer.incrementScore()
-//                        println("The game is finish")
-//                        return (activePlayerWinner, newPassivePlayer)
-//                    }
-//                    else {
-//                        showContinueMessage
-//                        readLine()
-//                        shootsLoop(newPassivePlayer, newActivePlayer)
-//                    }
-//                }
-//                else {
-//                    showContinueMessage
-//                    readLine()
-//                    shootsLoop(newPassivePlayer, newActivePlayer)
-//                }
-//            }
-//            // Else, cell already shot
-//            case _                  => {
-//                clear
-//                println(activePlayer.shipsGrid + "\n")
-//                println(activePlayer.shootsGrid)
-//                showAlreadyShotMessage
-//                showContinueMessage
-//                readLine()
-//                shootsLoop(passivePlayer, activePlayer)
-//            }
-//        }
     }
 
-}
+    /**
+      * Print in a csv file named "ai_proof.csv" the result of all the gone battles.
+      * @param goneBattle
+      */
+    def csvPrint(goneBattle: List[GameState]): Unit = {
+        File("ai_proof.csv").writeAll("AI name;AI score;AI name2;AI score2\n")
+        val csv: String = goneBattle.map( g => g.p1.name + ";" + g.p1.score + ";" + g.p2.name + ";" + g.p2.score + "\n").reduce(_+_)
+        File("ai_proof.csv").appendAll(csv)
+    }
 
-/*
-1.  add 5 ships j1
-    add 5 ships j2
-2.  j1 play:
-        display shipsGrod
-        display shootGrid
-        enter coord
-        check coord on the shipsGrid j2
-        - coord = TOUCH or MISS --> already touched, try again
-        - coord = EMPTY --> update StateCell(MISS)
-        - coord = SHIP
-                    - updateStateCell(TOUCH)
-                    - delete cell ship touched
-                    - check if the ship is sunk
-                        - check if the party is finished
-    j2 play
-3. display j winner
- */
+
+}

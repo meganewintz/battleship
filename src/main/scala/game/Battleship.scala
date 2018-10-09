@@ -1,21 +1,30 @@
 package game
 
-import action.HumanAction
-import actors._
+import actions.{AI3, HumanAction}
+import basis._
 import game.Utility._
 
+import scala.reflect.io.File
+
 import scala.annotation.tailrec
+
 
 case class GameState(p1: Player, p2: Player, loop: Int = 0)
 
 object Battleship extends App {
 
-    val game = getChoiceGame
+    // ti launch the test of the AIs.
+    if (args.length > 0 && args(0) == "testAIs") {
+        testAIloop(battleAIs, List())
+    }
+    else {
+        val game = getChoiceGame
+        mainLoop(game)
+    }
 
-    mainLoop(game)
 
     @tailrec
-    def mainLoop(game: GameState): Unit = {
+    def mainLoop(game: GameState): GameState = {
 
         // create the fleet for each player
         val player1 = game.p1.initialiseFleet(descrShips)
@@ -23,9 +32,9 @@ object Battleship extends App {
 
         // Loop for the shoot
         val players = shootsLoop(player1, player2)
-        showPlayerWinnerMessage(players._1)
-        showScorePlayer(players._1)
+        showPlayerWinnerMessage(players._2)
         showScorePlayer(players._2)
+        showScorePlayer(players._1)
 
         //Reboot the players
         val newPlayer1 = players._1.ressetPlayer()
@@ -48,17 +57,28 @@ object Battleship extends App {
                 if (newPlayer1.fistPlayer) mainLoop(GameState(newPlayer1, newPlayer2))
                 else mainLoop(GameState(newPlayer2, newPlayer1))
             }
+            else GameState(newPlayer1, newPlayer2)
         }
+        else GameState(newPlayer1, newPlayer2)
     }
 
+    /**
+      * The loop for the test between the AIs.
+      * We loop until there is remainingBattle.
+      * At the end of the loop, we print the result of the battles in a csv.
+      *
+      * @param remainingBattle
+      * @param goneBattle
+      */
+    @tailrec
+    def testAIloop(remainingBattle: List[GameState], goneBattle: List[GameState]): Unit = {
+
+        if (remainingBattle.nonEmpty) {
+            val resBattle = mainLoop(remainingBattle.head)
+            testAIloop(remainingBattle.tail, resBattle :: goneBattle)
+        }
+        else {
+            csvPrint(goneBattle)
+        }
+    }
 }
-/*
-
-Human
-play
-
-
-AI vs AI
-mainLoop x100 donc on sort quand loop = 0
-Donc: on ne demande pas au joueur start again, on enchaine direct
- */
